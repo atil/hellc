@@ -5,10 +5,10 @@ if not exist bin (
 )
 
 pushd bin
-if "%1" == "-d" (
+if "%1" == "-vs" (
     call :CompileDebug
     devenv game.exe
-) else if "%1" == "-pdb" (
+) else if "%1" == "-d" (
     call :CompileDebug
 ) else (
     call :Compile

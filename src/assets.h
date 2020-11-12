@@ -1,7 +1,19 @@
 #ifndef _ASSETS_H_
 #define _ASSETS_H_
 
-void load_obj(const char* file_path, char** object_name, float** vertices, int* vertex_count, int** faces, int* face_count);
+struct ObjFileData {
+    char* name;
+
+    float* batched_data;
+    int batched_data_size;
+
+    int* batched_index_data;
+    int batched_index_count;
+};
+
+ObjFileData* load_obj(const char* file_path);
+
+void delete_obj(ObjFileData* obj);
 
 char* read_file(const char* file_path);
 

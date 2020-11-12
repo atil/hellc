@@ -15,6 +15,7 @@
 
 #include "assets.h"
 #include "render.h"
+#include "input.h"
 #include "player.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -24,34 +25,73 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
+void process_input(Input* input, GLFWwindow* window) {
+    float prev_mouse_x = input->mouse_x;
+    float prev_mouse_y = input->mouse_y;
+
+    memset(input, 0, sizeof(Input));
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        input->forward = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        input->back = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        input->left = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        input->right = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        input->up = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        input->down = true;
+    }
+
+    double mouse_x, mouse_y;
+    glfwGetCursorPos(window, &mouse_x, &mouse_y);
+    input->mouse_x = (float) mouse_x;
+    input->mouse_y = (float) mouse_y;
+    input->prev_mouse_x = (float) prev_mouse_x;
+    input->prev_mouse_y = (float) prev_mouse_y;
+}
+
 int main() {
-    char* object_name = nullptr;
-    float* vertices = nullptr;
-    int vertex_count = 0;
-    int* faces = nullptr;
-    int face_count = 0;
-    load_obj("../assets/triangle.obj", &object_name, &vertices, &vertex_count, &faces, &face_count);
-
-    Player* player = new Player();
-
     glfwInit();
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "here we go again", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    init_player(player, window);
+    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj");
+
+    double mouse_x, mouse_y;
+    glfwGetCursorPos(window, &mouse_x, &mouse_y);
+    Input* input = (Input*) malloc(sizeof(Input));
+    input->mouse_x = (float) mouse_x;
+    input->mouse_y = (float) mouse_y;
+
+    Player* player = (Player*)malloc(sizeof(Player));
+    init_player(player);
 
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, obj_data->batched_data_size * sizeof(float), obj_data->batched_data, GL_STATIC_DRAW);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glm::mat4 model = glm::mat4(1);
@@ -73,17 +113,18 @@ int main() {
             glfwSetWindowShouldClose(window, true);
             return 0;
         }
-
-        process_player_input(player, window);
         float now_time = glfwGetTime();
         float delta_time = now_time - prev_time;
         prev_time = now_time;
+
+        process_input(input, window);
+        process_player_input(player, input, delta_time);
 
         set_mat4(shader_program_id, "u_view", get_view_matrix(player));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, faces);
+        glDrawElements(GL_TRIANGLES, obj_data->batched_index_count, GL_UNSIGNED_INT, obj_data->batched_index_data);
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -93,11 +134,8 @@ int main() {
     glfwTerminate();
     delete_shader_program(shader_program_id);
 
-    free(object_name);
-    free(vertices);
-    free(faces);
-
-    delete player;
+    delete_obj(obj_data);
+    free(input);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
 
