@@ -57,7 +57,7 @@ ObjFileData* load_obj(const char* file_path) {
 
     ObjFileData* obj_data = (ObjFileData*) malloc(sizeof(ObjFileData));
     float* positions = (float*) malloc(position_count * 3 * sizeof(float));
-    int* faces = (int*) malloc(face_count * 9 * sizeof(int));
+    int* face_data = (int*) malloc(face_count * 9 * sizeof(int));
     float* uvs = (float*) malloc(uv_count * 2 * sizeof(float));
     float* normals = (float*) malloc(uv_count * 3 * sizeof(float));
 
@@ -87,17 +87,17 @@ ObjFileData* load_obj(const char* file_path) {
                     &pos_x_index, &uv_x_index, &norm_x_index,
                     &pos_y_index, &uv_y_index, &norm_y_index,
                     &pos_z_index, &uv_z_index, &norm_z_index);
-            faces[face_index++] = pos_x_index;
-            faces[face_index++] = uv_x_index;
-            faces[face_index++] = norm_x_index;
+            face_data[face_index++] = pos_x_index;
+            face_data[face_index++] = uv_x_index;
+            face_data[face_index++] = norm_x_index;
 
-            faces[face_index++] = pos_y_index;
-            faces[face_index++] = uv_y_index;
-            faces[face_index++] = norm_y_index;
+            face_data[face_index++] = pos_y_index;
+            face_data[face_index++] = uv_y_index;
+            face_data[face_index++] = norm_y_index;
 
-            faces[face_index++] = pos_z_index;
-            faces[face_index++] = uv_z_index;
-            faces[face_index++] = norm_z_index;
+            face_data[face_index++] = pos_z_index;
+            face_data[face_index++] = uv_z_index;
+            face_data[face_index++] = norm_z_index;
         } else if (strcmp(line, "vt") == 0) {
             float u, v;
             fscanf(stream, "%f %f", &u, &v);
@@ -124,17 +124,18 @@ ObjFileData* load_obj(const char* file_path) {
     bool has_norm = normal_count > 0;
 
     for (int i = 0, batched_data_index = 0; i < face_count; i++) {
-        int pos_x_index = faces[i];
-        int uv_x_index = faces[i + 1];
-        int norm_x_index = faces[i + 2];
+        int face_start_index = i * 9;
+        int pos_x_index = face_data[face_start_index];
+        int uv_x_index = face_data[face_start_index + 1];
+        int norm_x_index = face_data[face_start_index + 2];
 
-        int pos_y_index = faces[i + 3];
-        int uv_y_index = faces[i + 4];
-        int norm_y_index = faces[i + 5];
+        int pos_y_index = face_data[face_start_index + 3];
+        int uv_y_index = face_data[face_start_index + 4];
+        int norm_y_index = face_data[face_start_index + 5];
 
-        int pos_z_index = faces[i + 6];
-        int uv_z_index = faces[i + 7];
-        int norm_z_index = faces[i + 8];
+        int pos_z_index = face_data[face_start_index + 6];
+        int uv_z_index = face_data[face_start_index + 7];
+        int norm_z_index = face_data[face_start_index + 8];
 
         // TODO @PERF: Group the array usages together for cache-friendliness
         // That'd require each float's index to be precalculated in the batched array
@@ -174,9 +175,9 @@ ObjFileData* load_obj(const char* file_path) {
     obj_data->batched_index_data = (int*) malloc(sizeof(int) * 3 * face_count);
 
     for (int i = 0, index_data_index = 0; i < face_count; i++) {
-        int vertex_index_0 = faces[i];
-        int vertex_index_1 = faces[i + 3];
-        int vertex_index_2 = faces[i + 6];
+        int vertex_index_0 = face_data[(i * 9)];
+        int vertex_index_1 = face_data[(i * 9) + 3];
+        int vertex_index_2 = face_data[(i * 9) + 6];
         obj_data->batched_index_data[index_data_index++] = vertex_index_0;
         obj_data->batched_index_data[index_data_index++] = vertex_index_1;
         obj_data->batched_index_data[index_data_index++] = vertex_index_2;
@@ -184,7 +185,7 @@ ObjFileData* load_obj(const char* file_path) {
 
     fclose(stream);
     free(positions);
-    free(faces);
+    free(face_data);
     free(uvs);
     free(normals);
     return obj_data;

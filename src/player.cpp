@@ -1,6 +1,6 @@
 #include "player.h" 
 
-#define MOVE_SPEED 0.5f
+#define MOVE_SPEED 1.5f
 #define SENSITIVITY 1.f
 
 static glm::vec3 up(0.0f, 1.0f, 0.0f);
