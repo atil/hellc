@@ -48,7 +48,7 @@ int load_shader_program(const char* shader_path) {
     glAttachShader(shader_program, frag_shader);
     glAttachShader(shader_program, vert_shader);
     glLinkProgram(shader_program);
-    
+
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
     free(program_string);
@@ -58,14 +58,12 @@ int load_shader_program(const char* shader_path) {
     glGetProgramiv(shader_program, GL_LINK_STATUS, &is_success);
     if (is_success == GL_FALSE) {
 
-        printf("Failed to link shader program\n");
         int log_length;
         glGetShaderiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
 
         char* log = (char*) malloc(log_length);
         glGetShaderInfoLog(shader_program, log_length, &log_length, log);
 
-        printf("%s\n", log);
         free(log);
         glDeleteShader(shader_program);
         return -1;
@@ -75,7 +73,10 @@ int load_shader_program(const char* shader_path) {
 }
 
 int get_location(int shader_program_id, const char* property_name) {
+    /* printf("about to get the location for:\n"); */
+    /* printf("%s %d\n", property_name, shader_program_id); */
     int loc = glGetUniformLocation(shader_program_id, property_name);
+    /* printf("got location\n"); */
     if (loc == -1)
     {
         printf("Couldn't find shader property: %s\n", property_name);
@@ -88,7 +89,7 @@ void check_uniform_error(const char* property_name) {
     int error = GL_NO_ERROR;
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        printf("Error when setting uniform %s, error code: %d", property_name, error);
+        printf("Error when setting uniform %s, error code: %d\n", property_name, error);
     }
 }
 

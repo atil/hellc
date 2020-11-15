@@ -1,9 +1,13 @@
-#include "player.h" 
+#include "world.h" 
 
-#define MOVE_SPEED 1.5f
+#define MOVE_SPEED 3.5f
 #define SENSITIVITY 1.f
 
 static glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+void print_vec3(const glm::vec3& vec) {
+    printf("%f %f %f\n", vec.x, vec.y, vec.z);
+}
 
 glm::mat4 get_view_matrix(Player* player) {
     return glm::lookAt(player->position, player->position + player->forward, up);

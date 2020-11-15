@@ -16,7 +16,7 @@
 #include "assets.h"
 #include "render.h"
 #include "input.h"
-#include "player.h"
+#include "world.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
@@ -67,7 +67,12 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj");
+    float* vertex_positions;
+    int vertex_count;
+    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj", &vertex_positions, &vertex_count);
+    /* Triangle* triangles = create_triangle(vertex_positions, vertex_count, obj_data->batched_index_data, obj_data->batched_index_count); */
+    /* free(triangles); */
+    free(vertex_positions);
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
@@ -81,7 +86,7 @@ int main() {
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, obj_data->batched_data_size * sizeof(float), obj_data->batched_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, obj_data->batched_data_length * sizeof(float), obj_data->batched_data, GL_STATIC_DRAW);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -93,6 +98,11 @@ int main() {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    GLuint ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_data->batched_index_length * sizeof(int), obj_data->batched_index_data, GL_STATIC_DRAW);
 
     glm::mat4 model = glm::mat4(1);
     glm::mat4 perspective = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
@@ -123,11 +133,9 @@ int main() {
         set_mat4(shader_program_id, "u_view", get_view_matrix(player));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, obj_data->batched_index_count, GL_UNSIGNED_INT, obj_data->batched_index_data);
+        glDrawElements(GL_TRIANGLES, obj_data->batched_index_length, GL_UNSIGNED_INT, nullptr);
         glfwSwapBuffers(window);
         glfwPollEvents();
-
     }
 
     glfwDestroyWindow(window);
@@ -138,6 +146,7 @@ int main() {
     free(input);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ibo);
 
     return 0;
 }

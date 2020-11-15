@@ -1,10 +1,18 @@
-#ifndef _PLAYER_H_
-#define _PLAYER_H_
+#ifndef _WORLD_H_
+#define _WORLD_H_
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "input.h"
+
+struct Triangle {
+    glm::vec3 p0;
+    glm::vec3 p1;
+    glm::vec3 p2;
+};
+
+Triangle* create_triangle(float* vertex_data, int vertex_count, int* index_data, int index_data_length);
 
 struct Player {
     glm::vec3 position;
