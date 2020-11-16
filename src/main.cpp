@@ -62,7 +62,7 @@ void process_input(Input* input, GLFWwindow* window) {
 
 int main() {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "here we go again", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "i don't know what i'm doing", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
@@ -80,7 +80,7 @@ int main() {
     input->mouse_x = (float) mouse_x;
     input->mouse_y = (float) mouse_y;
 
-    Player* player = (Player*)malloc(sizeof(Player));
+    Player* player = (Player*) malloc(sizeof(Player));
     init_player(player);
 
     GLuint vbo;
@@ -104,12 +104,24 @@ int main() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_data->batched_index_length * sizeof(int), obj_data->batched_index_data, GL_STATIC_DRAW);
 
+    int tex_width, tex_height;
+    unsigned char* image_data = read_image("../assets/GridBox_Default.png", &tex_width, &tex_height);
+    unsigned int tex_handle;
+    glGenTextures(1, &tex_handle);
+    glBindTexture(GL_TEXTURE_2D, tex_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+    free_image(image_data);
+
+    int shader_program_id = load_shader_program("../src/world.glsl");
     glm::mat4 model = glm::mat4(1);
     glm::mat4 perspective = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
 
-    int shader_program_id = load_shader_program("../src/world.glsl");
-
     glUseProgram(shader_program_id);
+    set_int(shader_program_id, "u_texture", 0);
     set_mat4(shader_program_id, "u_perspective", perspective);
     set_mat4(shader_program_id, "u_model", model);
 
@@ -130,6 +142,8 @@ int main() {
         process_input(input, window);
         process_player_input(player, input, delta_time);
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tex_handle);
         set_mat4(shader_program_id, "u_view", get_view_matrix(player));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -142,7 +156,7 @@ int main() {
     glfwTerminate();
     delete_shader_program(shader_program_id);
 
-    delete_obj(obj_data);
+    free_obj(obj_data);
     free(input);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);

@@ -1,4 +1,6 @@
 #include "assets.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -58,7 +60,7 @@ ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vert
         }
     }
 
-    // TODO @PERF: Maybe doing this in a string is better
+    // TODO @PERF: Maybe doing this in a big string is better
     // File seek operation is expensive
     rewind(stream); 
 
@@ -206,7 +208,23 @@ ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vert
     return obj_data;
 }
 
-void delete_obj(ObjFileData* obj) {
+unsigned char* read_image(const char* image_path, int* out_width, int* out_height) {
+    stbi_set_flip_vertically_on_load(true);
+    int n;
+    unsigned char *data = stbi_load(image_path, out_width, out_height, &n, 0);
+    if (data == nullptr) {
+        printf("Couldn't load the image at %s\n", image_path);
+        return nullptr;
+    }
+
+    return data;
+}
+
+void free_image(unsigned char* image_data) {
+    stbi_image_free(image_data);
+}
+
+void free_obj(ObjFileData* obj) {
     free(obj->name);
     free(obj->batched_data);
     free(obj->batched_index_data);

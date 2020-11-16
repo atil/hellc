@@ -93,6 +93,11 @@ void check_uniform_error(const char* property_name) {
     }
 }
 
+void set_int(int shader_program_id, const char* property_name, int i) {
+    glUniform1i(get_location(shader_program_id, property_name), i);
+    check_uniform_error(property_name);
+}
+
 void set_vec3(int shader_program_id, const char* property_name, glm::vec3 v) {
     glUniform3fv(get_location(shader_program_id, property_name), 1, (const float*) &v[0]);
     check_uniform_error(property_name);

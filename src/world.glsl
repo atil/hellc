@@ -23,6 +23,8 @@ void main() {
 in vec2 v2f_uv;
 in vec3 v2f_normal;
 
+uniform sampler2D u_texture;
+
 out vec4 frag_color;
 
 void main() {
@@ -31,7 +33,8 @@ void main() {
     float uv_max = max(v2f_uv.x, v2f_uv.y);
     vec2 uv_normalized = v2f_uv / uv_max;
 
-    vec3 color = vec3(uv_normalized, 0);
-    frag_color = vec4(color, 1.0);
+    vec4 tex_color = texture(u_texture, v2f_uv);
+
+    frag_color = tex_color;
 };
 #endif

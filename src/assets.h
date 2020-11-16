@@ -11,10 +11,16 @@ struct ObjFileData {
     int batched_index_length;
 };
 
-ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vertex_count);
+struct MtlFileData {
 
-void delete_obj(ObjFileData* obj);
+};
+
+ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vertex_count);
+void free_obj(ObjFileData* obj);
 
 char* read_file(const char* file_path);
+
+unsigned char* read_image(const char* image_path, int* out_width, int* out_height);
+void free_image(unsigned char* image_data);
 
 #endif
