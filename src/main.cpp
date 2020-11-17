@@ -1,3 +1,7 @@
+// TODO:
+// 1- load the texture from the read material
+// 2- different textures: create different buffers -- treated as separate meshes
+
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
 #include <stdio.h>
@@ -68,9 +72,9 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj");
+    ObjFileData* obj_data = new ObjFileData("../assets/test_lighting.obj");
 
-    std::vector<Material> mats = load_mtl_file("../assets/cube.mtl");
+    std::vector<Material> mats = load_mtl_file("../assets/test_lighting.mtl");
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
@@ -102,9 +106,8 @@ int main() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_data->batched_index_length * sizeof(int), obj_data->batched_index_data, GL_STATIC_DRAW);
 
-    int tex_width, tex_height;
+    Image* image = new Image("../assets/GridBox_Default.png");
 
-    unsigned char* image_data = read_image("../assets/GridBox_Default.png", &tex_width, &tex_height);
     unsigned int tex_handle;
     glGenTextures(1, &tex_handle);
     glBindTexture(GL_TEXTURE_2D, tex_handle);
@@ -112,8 +115,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-    free_image(image_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->image_data);
 
     int shader_program_id = load_shader_program("../src/world.glsl");
     glm::mat4 model = glm::mat4(1);
@@ -155,7 +157,6 @@ int main() {
     glfwTerminate();
     delete_shader_program(shader_program_id);
 
-    free_obj(obj_data);
     free(input);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);

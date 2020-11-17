@@ -3,6 +3,9 @@
 #include "assets.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 #define OBJ_NAME_MAX_LENGTH 50
 
@@ -25,16 +28,10 @@ char* read_file(const char* file_path) {
     return buffer;
 }
 
-ObjFileData* load_obj(const char* file_path) {
-    FILE* stream = fopen(file_path, "rb");
-    if (!stream) {
-        printf("Failed to open obj file %s", file_path);
-        return nullptr;
-    }
+ObjFileData::ObjFileData(const std::string& file_path) {
+    std::ifstream stream(file_path);
 
-    ObjFileData* obj_data = (ObjFileData*) malloc(sizeof(ObjFileData));
-    obj_data->name = (char*) malloc(OBJ_NAME_MAX_LENGTH * sizeof(char));
-
+    this->name = (char*) malloc(OBJ_NAME_MAX_LENGTH * sizeof(char));
 
     std::vector<float> positions;
     std::vector<float> uvs;
@@ -45,39 +42,38 @@ ObjFileData* load_obj(const char* file_path) {
     // Read the vertex/uv/normal/face data into memory
     //
 
-    while (true) {
-        char line[128];
+    std::string line;
+    std::string command;
+    while (std::getline(stream, line)) {
+        std::istringstream line_stream(line);
 
-        if (fscanf(stream, "%s", line) == EOF) {
-            break;
-        }
-
-        if (strcmp(line, "#") == 0) {
+        if (line.find("#") == 0) {
             continue;
-        } else if (strcmp(line, "o") == 0) {
-            fscanf(stream, "%s", obj_data->name);
-        } else if (strcmp(line, "v") == 0) {
-            float x, y, z;
-            fscanf(stream, "%f %f %f", &x, &y, &z);
-            positions.push_back(x);
-            positions.push_back(y);
-            positions.push_back(z);
-        } else if (strcmp(line, "vt") == 0) {
+        } else if (line.find("o") == 0) {
+            sscanf(line.c_str(), "%s", this->name);
+        } else if (line.find("vt") == 0) {
             float u, v;
-            fscanf(stream, "%f %f", &u, &v);
+            line_stream >> command >> u >> v;
             uvs.push_back(u);
             uvs.push_back(v);
-        } else if (strcmp(line, "vn") == 0) {
+        } else if (line.find("vn") == 0) {
             float nx, ny, nz;
-            fscanf(stream, "%f %f %f", &nx, &ny, &nz);
+            line_stream >> command >> nx >> ny >> nz;
             normals.push_back(nx);
             normals.push_back(ny);
             normals.push_back(nz);
-        } else if (strcmp(line, "f") == 0) {
+        } if (line.find("v") == 0) {
+            float x, y, z;
+            line_stream >> command >> x >> y >> z;
+            positions.push_back(x);
+            positions.push_back(y);
+            positions.push_back(z);
+        } else if (line.find("f") == 0) {
+            char dummy[1];
             int pos_x_index, pos_y_index, pos_z_index;
             int uv_x_index, uv_y_index, uv_z_index;
             int norm_x_index, norm_y_index, norm_z_index;
-            fscanf(stream, "%d/%d/%d %d/%d/%d %d/%d/%d", 
+            sscanf(line.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", dummy,
                     &pos_x_index, &uv_x_index, &norm_x_index,
                     &pos_y_index, &uv_y_index, &norm_y_index,
                     &pos_z_index, &uv_z_index, &norm_z_index);
@@ -99,16 +95,14 @@ ObjFileData* load_obj(const char* file_path) {
         }
     }
 
-    fclose(stream);
-
     // 
     // Set batched data to be given directly to opengl
     //
 
     int face_count = face_data.size() / 9;
     const int vertex_length = 3 + 2 + 3; // pos - uv - normal
-    obj_data->batched_data_length = face_count * (3 * vertex_length); // 3 vertices per face
-    obj_data->batched_data = (float*) malloc(obj_data->batched_data_length * sizeof(float));
+    this->batched_data_length = face_count * (3 * vertex_length); // 3 vertices per face
+    this->batched_data = (float*) malloc(this->batched_data_length * sizeof(float));
 
     for (int i = 0, batched_data_index = 0; i < face_count; i++) {
         int face_start_index = i * 9;
@@ -129,68 +123,64 @@ ObjFileData* load_obj(const char* file_path) {
         // That'd require each float's index to be precalculated in the batched array
 
         // First vertex's data
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_x_index];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_x_index + 1];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_x_index + 2];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_x_index];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_x_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_x_index];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_x_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_x_index + 2];
+        this->batched_data[batched_data_index++] = positions[3 * pos_x_index];
+        this->batched_data[batched_data_index++] = positions[3 * pos_x_index + 1];
+        this->batched_data[batched_data_index++] = positions[3 * pos_x_index + 2];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_x_index];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_x_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_x_index];
+        this->batched_data[batched_data_index++] = normals[3 * norm_x_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_x_index + 2];
 
         // Second vertex's data
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_y_index];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_y_index + 1];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_y_index + 2];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_y_index];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_y_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_y_index];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_y_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_y_index + 2];
+        this->batched_data[batched_data_index++] = positions[3 * pos_y_index];
+        this->batched_data[batched_data_index++] = positions[3 * pos_y_index + 1];
+        this->batched_data[batched_data_index++] = positions[3 * pos_y_index + 2];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_y_index];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_y_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_y_index];
+        this->batched_data[batched_data_index++] = normals[3 * norm_y_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_y_index + 2];
 
         // Third vertex's data
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_z_index];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_z_index + 1];
-        obj_data->batched_data[batched_data_index++] = positions[3 * pos_z_index + 2];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_z_index];
-        obj_data->batched_data[batched_data_index++] = uvs[2 * uv_z_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_z_index];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_z_index + 1];
-        obj_data->batched_data[batched_data_index++] = normals[3 * norm_z_index + 2];
+        this->batched_data[batched_data_index++] = positions[3 * pos_z_index];
+        this->batched_data[batched_data_index++] = positions[3 * pos_z_index + 1];
+        this->batched_data[batched_data_index++] = positions[3 * pos_z_index + 2];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_z_index];
+        this->batched_data[batched_data_index++] = uvs[2 * uv_z_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_z_index];
+        this->batched_data[batched_data_index++] = normals[3 * norm_z_index + 1];
+        this->batched_data[batched_data_index++] = normals[3 * norm_z_index + 2];
     }
 
-    obj_data->batched_index_length = face_count * 3; // 3 vertices per face
-    obj_data->batched_index_data = (int*) malloc(obj_data->batched_index_length * sizeof(int));
+    this->batched_index_length = face_count * 3; // 3 vertices per face
+    this->batched_index_data = (int*) malloc(this->batched_index_length * sizeof(int));
 
     for (int i = 0, index_data_index = 0; i < face_count; i++) {
-        obj_data->batched_index_data[index_data_index++] = i * 3;
-        obj_data->batched_index_data[index_data_index++] = i * 3 + 1;
-        obj_data->batched_index_data[index_data_index++] = i * 3 + 2;
+        this->batched_index_data[index_data_index++] = i * 3;
+        this->batched_index_data[index_data_index++] = i * 3 + 1;
+        this->batched_index_data[index_data_index++] = i * 3 + 2;
     }
-
-    return obj_data;
 }
 
-void free_obj(ObjFileData* obj) {
-    free(obj->name);
-    free(obj->batched_data);
-    free(obj->batched_index_data);
+ObjFileData::~ObjFileData() {
+    free(this->name);
+    free(this->batched_data);
+    free(this->batched_index_data);
 }
 
-unsigned char* read_image(const char* image_path, int* out_width, int* out_height) {
+Image::Image(const std::string& file_path) {
     stbi_set_flip_vertically_on_load(true);
     int n;
-    unsigned char *data = stbi_load(image_path, out_width, out_height, &n, 0);
-    if (data == nullptr) {
-        printf("Couldn't load the image at %s\n", image_path);
-        return nullptr;
+    this->image_data = stbi_load(file_path.c_str(), &(this->width), &(this->height), &n, 0);
+    if (image_data == nullptr) {
+        std::cout << "Couldn't load the image at: " << file_path << std::endl;
+        return;
     }
-
-    return data;
 }
 
-void free_image(unsigned char* image_data) {
-    stbi_image_free(image_data);
+Image::~Image() {
+    stbi_image_free(this->image_data);
 }
 
 std::vector<Material> load_mtl_file(const char* file_path) {

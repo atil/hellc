@@ -2,8 +2,10 @@
 #define _ASSETS_H_
 
 #include <vector>
+#include <string>
 
-struct ObjFileData {
+class ObjFileData {
+public:
     char* name;
 
     float* batched_data;
@@ -11,6 +13,19 @@ struct ObjFileData {
 
     int* batched_index_data;
     int batched_index_length;
+
+    ObjFileData(const std::string& file_path);
+    ~ObjFileData();
+};
+
+class Image {
+public:
+    int width;
+    int height;
+    unsigned char* image_data;
+
+    Image(const std::string& file_path);
+    ~Image();
 };
 
 struct Material {
@@ -20,13 +35,7 @@ struct Material {
     float transparency;
 };
 
-ObjFileData* load_obj(const char* file_path);
-void free_obj(ObjFileData* obj);
-
 char* read_file(const char* file_path);
-
-unsigned char* read_image(const char* image_path, int* out_width, int* out_height);
-void free_image(unsigned char* image_data);
 
 std::vector<Material> load_mtl_file(const char* file_path);
 #endif
