@@ -20,8 +20,8 @@ popd
 exit /b
 
 :Compile
-cl /nologo /I..\include\ ..\src\*.cpp  ..\lib\*.lib opengl32.lib /Fe"game.exe"
+cl /nologo /EHsc /I..\include\ ..\src\*.cpp  ..\lib\*.lib opengl32.lib /Fe"game.exe"
 exit /b
 
 :CompileDebug
-cl -Zi /nologo /I..\include\ ..\src\*.cpp ..\lib\*.lib opengl32.lib /Fe"game.exe"
+cl -Zi /nologo /EHsc /I..\include\ ..\src\*.cpp ..\lib\*.lib opengl32.lib /Fe"game.exe"

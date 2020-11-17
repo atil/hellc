@@ -1,8 +1,7 @@
-#include "assets.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "assets.h"
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 
 #define OBJ_NAME_MAX_LENGTH 50
@@ -11,7 +10,7 @@ char* read_file(const char* file_path) {
     FILE* f = fopen(file_path, "rb");
     if (!f) {
         printf("failed to open file %s", file_path);
-        return NULL;
+        return nullptr;
     }
 
     fseek(f, 0, SEEK_END);
@@ -26,56 +25,21 @@ char* read_file(const char* file_path) {
     return buffer;
 }
 
-ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vertex_count) {
+ObjFileData* load_obj(const char* file_path) {
     FILE* stream = fopen(file_path, "rb");
     if (!stream) {
         printf("Failed to open obj file %s", file_path);
-        return NULL;
+        return nullptr;
     }
-
-    //
-    // Figure out how many position/uv/normals are in the file
-    //
-
-    int position_count = 0;
-    int face_count = 0;
-    int uv_count = 0;
-    int normal_count = 0;
-    while (true) {
-        char line[128];
-
-        if (fscanf(stream, "%s", line) == EOF) {
-            break;
-        }
-        if (strcmp(line, "#") == 0) {
-            continue;
-        } else if (strcmp(line, "v") == 0) {
-            position_count++;
-        } else if (strcmp(line, "f") == 0) {
-            face_count++;
-        } else if (strcmp(line, "vt") == 0) {
-            uv_count++;
-        } else if (strcmp(line, "vn") == 0) {
-            normal_count++;
-        }
-    }
-
-    // TODO @PERF: Maybe doing this in a big string is better
-    // File seek operation is expensive
-    rewind(stream); 
 
     ObjFileData* obj_data = (ObjFileData*) malloc(sizeof(ObjFileData));
     obj_data->name = (char*) malloc(OBJ_NAME_MAX_LENGTH * sizeof(char));
 
-    float* positions = (float*) malloc(position_count * 3 * sizeof(float));
-    float* uvs = (float*) malloc(uv_count * 2 * sizeof(float));
-    float* normals = (float*) malloc(uv_count * 3 * sizeof(float));
-    int* face_data = (int*) malloc(face_count * 9 * sizeof(int));
 
-    int position_index = 0;
-    int uv_index = 0;
-    int normal_index = 0;
-    int face_index = 0;
+    std::vector<float> positions;
+    std::vector<float> uvs;
+    std::vector<float> normals;
+    std::vector<int> face_data;
 
     //
     // Read the vertex/uv/normal/face data into memory
@@ -95,20 +59,20 @@ ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vert
         } else if (strcmp(line, "v") == 0) {
             float x, y, z;
             fscanf(stream, "%f %f %f", &x, &y, &z);
-            positions[position_index++] = x;
-            positions[position_index++] = y;
-            positions[position_index++] = z;
+            positions.push_back(x);
+            positions.push_back(y);
+            positions.push_back(z);
         } else if (strcmp(line, "vt") == 0) {
             float u, v;
             fscanf(stream, "%f %f", &u, &v);
-            uvs[uv_index++] = u;
-            uvs[uv_index++] = v;
+            uvs.push_back(u);
+            uvs.push_back(v);
         } else if (strcmp(line, "vn") == 0) {
             float nx, ny, nz;
             fscanf(stream, "%f %f %f", &nx, &ny, &nz);
-            normals[normal_index++] = nx;
-            normals[normal_index++] = ny;
-            normals[normal_index++] = nz;
+            normals.push_back(nx);
+            normals.push_back(ny);
+            normals.push_back(nz);
         } else if (strcmp(line, "f") == 0) {
             int pos_x_index, pos_y_index, pos_z_index;
             int uv_x_index, uv_y_index, uv_z_index;
@@ -118,24 +82,30 @@ ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vert
                     &pos_y_index, &uv_y_index, &norm_y_index,
                     &pos_z_index, &uv_z_index, &norm_z_index);
 
-            face_data[face_index++] = pos_x_index - 1;
-            face_data[face_index++] = uv_x_index - 1;
-            face_data[face_index++] = norm_x_index - 1;
+            int single_face_data[9];
+            single_face_data[0] = pos_x_index - 1;
+            single_face_data[1] = uv_x_index - 1;
+            single_face_data[2] = norm_x_index - 1;
 
-            face_data[face_index++] = pos_y_index - 1;
-            face_data[face_index++] = uv_y_index - 1;
-            face_data[face_index++] = norm_y_index - 1;
+            single_face_data[3] = pos_y_index - 1;
+            single_face_data[4] = uv_y_index - 1;
+            single_face_data[5] = norm_y_index - 1;
 
-            face_data[face_index++] = pos_z_index - 1;
-            face_data[face_index++] = uv_z_index - 1;
-            face_data[face_index++] = norm_z_index - 1;
+            single_face_data[6] = pos_z_index - 1;
+            single_face_data[7] = uv_z_index - 1;
+            single_face_data[8] = norm_z_index - 1;
+
+            face_data.insert(face_data.end(), single_face_data, single_face_data + 9);
         }
     }
+
+    fclose(stream);
 
     // 
     // Set batched data to be given directly to opengl
     //
 
+    int face_count = face_data.size() / 9;
     const int vertex_length = 3 + 2 + 3; // pos - uv - normal
     obj_data->batched_data_length = face_count * (3 * vertex_length); // 3 vertices per face
     obj_data->batched_data = (float*) malloc(obj_data->batched_data_length * sizeof(float));
@@ -198,14 +168,13 @@ ObjFileData* load_obj(const char* file_path, float** vertex_positions, int* vert
         obj_data->batched_index_data[index_data_index++] = i * 3 + 2;
     }
 
-    fclose(stream);
-    free(face_data);
-    free(uvs);
-    free(normals);
-
-    *vertex_positions = positions;
-    *vertex_count = position_count;
     return obj_data;
+}
+
+void free_obj(ObjFileData* obj) {
+    free(obj->name);
+    free(obj->batched_data);
+    free(obj->batched_index_data);
 }
 
 unsigned char* read_image(const char* image_path, int* out_width, int* out_height) {
@@ -224,8 +193,44 @@ void free_image(unsigned char* image_data) {
     stbi_image_free(image_data);
 }
 
-void free_obj(ObjFileData* obj) {
-    free(obj->name);
-    free(obj->batched_data);
-    free(obj->batched_index_data);
+std::vector<Material> load_mtl_file(const char* file_path) {
+    std::vector<Material> materials;
+
+    FILE* stream = fopen(file_path, "rb");
+    if (!stream) {
+        printf("Failed to open obj file %s", file_path);
+        return materials;
+    }
+
+    while (true) {
+        char line[128];
+
+        if (fscanf(stream, "%s", line) == EOF) {
+            break;
+        }
+
+        if (strcmp(line, "newmtl") != 0) {
+            continue;
+        }
+
+        char command[10];
+        char material_name[50];
+        char texture_name[50];
+        float diffuse[3];
+        float transparency;
+        fscanf(stream, "%s", material_name);
+        fscanf(stream, "%s %s", command, texture_name);
+        fscanf(stream, "%s %f %f %f", command, &(diffuse[0]), &(diffuse[1]), &(diffuse[2]));
+        fscanf(stream, "%s %f", command, &transparency);
+
+        Material m;
+        m.name = material_name;
+        m.diffuse_texture_name = texture_name;
+        m.diffuse = diffuse;
+        m.transparency = transparency;
+        materials.push_back(m);
+    }
+
+    return materials;
 }
+

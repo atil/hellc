@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <vector>
 
 // Take-away: malloc works without this on windows, but it returns an int and not the pointer
 // Turns out that, the linker won't complain if it can't stuff like malloc/free declarations
@@ -67,12 +68,9 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    float* vertex_positions;
-    int vertex_count;
-    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj", &vertex_positions, &vertex_count);
-    /* Triangle* triangles = create_triangle(vertex_positions, vertex_count, obj_data->batched_index_data, obj_data->batched_index_count); */
-    /* free(triangles); */
-    free(vertex_positions);
+    ObjFileData* obj_data = load_obj("../assets/test_lighting.obj");
+
+    std::vector<Material> mats = load_mtl_file("../assets/cube.mtl");
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
@@ -105,6 +103,7 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_data->batched_index_length * sizeof(int), obj_data->batched_index_data, GL_STATIC_DRAW);
 
     int tex_width, tex_height;
+
     unsigned char* image_data = read_image("../assets/GridBox_Default.png", &tex_width, &tex_height);
     unsigned int tex_handle;
     glGenTextures(1, &tex_handle);
