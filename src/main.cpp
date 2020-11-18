@@ -74,8 +74,6 @@ int main() {
 
     ObjFileData* obj_data = new ObjFileData("../assets/test_lighting.obj");
 
-    std::vector<Material> mats = load_mtl_file("../assets/test_lighting.mtl");
-
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
     Input* input = (Input*) malloc(sizeof(Input));

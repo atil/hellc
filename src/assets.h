@@ -4,9 +4,19 @@
 #include <vector>
 #include <string>
 
+struct Material {
+    std::string name;
+    std::string diffuse_texture_name;
+    float diffuse[3];
+    float transparency;
+};
+
 class ObjFileData {
+private:
+    std::vector<Material> load_mtl_file(const std::string& file_path);
+
 public:
-    char* name;
+    std::string name;
 
     float* batched_data;
     int batched_data_length;
@@ -28,14 +38,7 @@ public:
     ~Image();
 };
 
-struct Material {
-    char* name;
-    char* diffuse_texture_name;
-    float* diffuse;
-    float transparency;
-};
 
 char* read_file(const char* file_path);
 
-std::vector<Material> load_mtl_file(const char* file_path);
 #endif

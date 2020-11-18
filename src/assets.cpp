@@ -7,8 +7,6 @@
 #include <iostream>
 #include <sstream>
 
-#define OBJ_NAME_MAX_LENGTH 50
-
 char* read_file(const char* file_path) {
     FILE* f = fopen(file_path, "rb");
     if (!f) {
@@ -31,12 +29,11 @@ char* read_file(const char* file_path) {
 ObjFileData::ObjFileData(const std::string& file_path) {
     std::ifstream stream(file_path);
 
-    this->name = (char*) malloc(OBJ_NAME_MAX_LENGTH * sizeof(char));
-
     std::vector<float> positions;
     std::vector<float> uvs;
     std::vector<float> normals;
     std::vector<int> face_data;
+    std::string mtl_file_path;
 
     //
     // Read the vertex/uv/normal/face data into memory
@@ -48,9 +45,11 @@ ObjFileData::ObjFileData(const std::string& file_path) {
         std::istringstream line_stream(line);
 
         if (line.find("#") == 0) {
-            continue;
+            continue; // Comments
+        } else if (line.find("mtllib") == 0) {
+            line_stream >> command >> mtl_file_path;
         } else if (line.find("o") == 0) {
-            sscanf(line.c_str(), "%s", this->name);
+            line_stream >> command >> this->name;
         } else if (line.find("vt") == 0) {
             float u, v;
             line_stream >> command >> u >> v;
@@ -62,7 +61,7 @@ ObjFileData::ObjFileData(const std::string& file_path) {
             normals.push_back(nx);
             normals.push_back(ny);
             normals.push_back(nz);
-        } if (line.find("v") == 0) {
+        } else if (line.find("v") == 0) {
             float x, y, z;
             line_stream >> command >> x >> y >> z;
             positions.push_back(x);
@@ -161,10 +160,16 @@ ObjFileData::ObjFileData(const std::string& file_path) {
         this->batched_index_data[index_data_index++] = i * 3 + 1;
         this->batched_index_data[index_data_index++] = i * 3 + 2;
     }
+
+    mtl_file_path = mtl_file_path.substr(2); // Remove the ./ in the beginning
+    size_t slash_index = file_path.find_last_of("/");
+    std::string file_directory = file_path.substr(0, slash_index);
+    std::vector<Material> m = load_mtl_file(file_directory + "/" + mtl_file_path);
+    // after loading, create vertex buffers with faces that are to be rendered with the corresponding materials
+
 }
 
 ObjFileData::~ObjFileData() {
-    free(this->name);
     free(this->batched_data);
     free(this->batched_index_data);
 }
@@ -183,41 +188,45 @@ Image::~Image() {
     stbi_image_free(this->image_data);
 }
 
-std::vector<Material> load_mtl_file(const char* file_path) {
+std::vector<Material> ObjFileData::load_mtl_file(const std::string& file_path) {
     std::vector<Material> materials;
 
-    FILE* stream = fopen(file_path, "rb");
-    if (!stream) {
-        printf("Failed to open obj file %s", file_path);
+    std::ifstream stream(file_path);
+
+    if (!stream.is_open()) {
+        std::cout << "Error opening mtl file" << file_path << std::endl;
         return materials;
     }
 
-    while (true) {
-        char line[128];
-
-        if (fscanf(stream, "%s", line) == EOF) {
-            break;
+    std::string line;
+    std::string command;
+    while (std::getline(stream, line)) {
+        if (line.find("newmtl") != 0) {
+            continue; // Start parsing from here
         }
-
-        if (strcmp(line, "newmtl") != 0) {
-            continue;
-        }
-
-        char command[10];
-        char material_name[50];
-        char texture_name[50];
-        float diffuse[3];
-        float transparency;
-        fscanf(stream, "%s", material_name);
-        fscanf(stream, "%s %s", command, texture_name);
-        fscanf(stream, "%s %f %f %f", command, &(diffuse[0]), &(diffuse[1]), &(diffuse[2]));
-        fscanf(stream, "%s %f", command, &transparency);
 
         Material m;
-        m.name = material_name;
-        m.diffuse_texture_name = texture_name;
-        m.diffuse = diffuse;
-        m.transparency = transparency;
+        std::istringstream line_stream;
+
+        line_stream.str(line);
+        line_stream >> command >> m.name; // newmtl
+        line_stream.clear();
+
+        std::getline(stream, line);
+        line_stream.str(line);
+        line_stream >> command >> m.diffuse_texture_name; // map_Kd
+        line_stream.clear();
+
+        std::getline(stream, line);
+        line_stream.str(line);
+        line_stream >> command >> m.diffuse[0] >> m.diffuse[1] >> m.diffuse[2]; // Kd
+        line_stream.clear();
+
+        std::getline(stream, line);
+        line_stream.str(line);
+        line_stream >> command >> m.transparency; // d
+        line_stream.clear();
+
         materials.push_back(m);
     }
 
