@@ -1,6 +1,5 @@
 // TODO:
-// 1- load the texture from the read material
-// 2- different textures: create different buffers -- treated as separate meshes
+// debug with triangle, create a mtl for it
 
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
@@ -72,7 +71,8 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    ObjFileData* obj_data = new ObjFileData("../assets/test_lighting.obj");
+    std::vector<RenderUnit*> render_units = load_obj_file("../assets/test_lighting.obj");
+    RenderUnit* ru = render_units[0];
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
@@ -86,7 +86,7 @@ int main() {
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, obj_data->batched_data_length * sizeof(float), obj_data->batched_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ru->vertex_data_length * sizeof(float), ru->vertex_data, GL_STATIC_DRAW);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -102,10 +102,11 @@ int main() {
     GLuint ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_data->batched_index_length * sizeof(int), obj_data->batched_index_data, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ru->index_data_length * sizeof(int), ru->index_data, GL_STATIC_DRAW);
 
-    Image* image = new Image("../assets/GridBox_Default.png");
-
+    /* Image* image = new Image("../assets/GridBox_Default.png"); */
+    std::string image_path = "../assets/" + ru->material.diffuse_texture_name;
+    Image* image = new Image(image_path);
     unsigned int tex_handle;
     glGenTextures(1, &tex_handle);
     glBindTexture(GL_TEXTURE_2D, tex_handle);
@@ -146,7 +147,7 @@ int main() {
         set_mat4(shader_program_id, "u_view", get_view_matrix(player));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDrawElements(GL_TRIANGLES, obj_data->batched_index_length, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, ru->index_data_length, GL_UNSIGNED_INT, nullptr);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

@@ -11,22 +11,20 @@ struct Material {
     float transparency;
 };
 
-class ObjFileData {
-private:
-    std::vector<Material> load_mtl_file(const std::string& file_path);
-
+class RenderUnit {
 public:
-    std::string name;
+    Material material;
+    float* vertex_data;
+    int vertex_data_length;
 
-    float* batched_data;
-    int batched_data_length;
+    int* index_data;
+    int index_data_length;
 
-    int* batched_index_data;
-    int batched_index_length;
-
-    ObjFileData(const std::string& file_path);
-    ~ObjFileData();
+    RenderUnit(Material material, const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data);
+    ~RenderUnit();
 };
+
+std::vector<RenderUnit*> load_obj_file(const std::string& file_path);
 
 class Image {
 public:
@@ -37,7 +35,6 @@ public:
     Image(const std::string& file_path);
     ~Image();
 };
-
 
 char* read_file(const char* file_path);
 

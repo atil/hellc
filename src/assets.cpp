@@ -26,169 +26,7 @@ char* read_file(const char* file_path) {
     return buffer;
 }
 
-ObjFileData::ObjFileData(const std::string& file_path) {
-    std::ifstream stream(file_path);
-
-    std::vector<float> positions;
-    std::vector<float> uvs;
-    std::vector<float> normals;
-    std::vector<int> face_data;
-    std::string mtl_file_path;
-
-    //
-    // Read the vertex/uv/normal/face data into memory
-    //
-
-    std::string line;
-    std::string command;
-    while (std::getline(stream, line)) {
-        std::istringstream line_stream(line);
-
-        if (line.find("#") == 0) {
-            continue; // Comments
-        } else if (line.find("mtllib") == 0) {
-            line_stream >> command >> mtl_file_path;
-        } else if (line.find("o") == 0) {
-            line_stream >> command >> this->name;
-        } else if (line.find("vt") == 0) {
-            float u, v;
-            line_stream >> command >> u >> v;
-            uvs.push_back(u);
-            uvs.push_back(v);
-        } else if (line.find("vn") == 0) {
-            float nx, ny, nz;
-            line_stream >> command >> nx >> ny >> nz;
-            normals.push_back(nx);
-            normals.push_back(ny);
-            normals.push_back(nz);
-        } else if (line.find("v") == 0) {
-            float x, y, z;
-            line_stream >> command >> x >> y >> z;
-            positions.push_back(x);
-            positions.push_back(y);
-            positions.push_back(z);
-        } else if (line.find("f") == 0) {
-            char dummy[1];
-            int pos_x_index, pos_y_index, pos_z_index;
-            int uv_x_index, uv_y_index, uv_z_index;
-            int norm_x_index, norm_y_index, norm_z_index;
-            sscanf(line.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", dummy,
-                    &pos_x_index, &uv_x_index, &norm_x_index,
-                    &pos_y_index, &uv_y_index, &norm_y_index,
-                    &pos_z_index, &uv_z_index, &norm_z_index);
-
-            int single_face_data[9];
-            single_face_data[0] = pos_x_index - 1;
-            single_face_data[1] = uv_x_index - 1;
-            single_face_data[2] = norm_x_index - 1;
-
-            single_face_data[3] = pos_y_index - 1;
-            single_face_data[4] = uv_y_index - 1;
-            single_face_data[5] = norm_y_index - 1;
-
-            single_face_data[6] = pos_z_index - 1;
-            single_face_data[7] = uv_z_index - 1;
-            single_face_data[8] = norm_z_index - 1;
-
-            face_data.insert(face_data.end(), single_face_data, single_face_data + 9);
-        }
-    }
-
-    // 
-    // Set batched data to be given directly to opengl
-    //
-
-    int face_count = face_data.size() / 9;
-    const int vertex_length = 3 + 2 + 3; // pos - uv - normal
-    this->batched_data_length = face_count * (3 * vertex_length); // 3 vertices per face
-    this->batched_data = (float*) malloc(this->batched_data_length * sizeof(float));
-
-    for (int i = 0, batched_data_index = 0; i < face_count; i++) {
-        int face_start_index = i * 9;
-
-        int pos_x_index = face_data[face_start_index];
-        int uv_x_index = face_data[face_start_index + 1];
-        int norm_x_index = face_data[face_start_index + 2];
-
-        int pos_y_index = face_data[face_start_index + 3];
-        int uv_y_index = face_data[face_start_index + 4];
-        int norm_y_index = face_data[face_start_index + 5];
-
-        int pos_z_index = face_data[face_start_index + 6];
-        int uv_z_index = face_data[face_start_index + 7];
-        int norm_z_index = face_data[face_start_index + 8];
-
-        // TODO @PERF: Group the array usages together for cache-friendliness
-        // That'd require each float's index to be precalculated in the batched array
-
-        // First vertex's data
-        this->batched_data[batched_data_index++] = positions[3 * pos_x_index];
-        this->batched_data[batched_data_index++] = positions[3 * pos_x_index + 1];
-        this->batched_data[batched_data_index++] = positions[3 * pos_x_index + 2];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_x_index];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_x_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_x_index];
-        this->batched_data[batched_data_index++] = normals[3 * norm_x_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_x_index + 2];
-
-        // Second vertex's data
-        this->batched_data[batched_data_index++] = positions[3 * pos_y_index];
-        this->batched_data[batched_data_index++] = positions[3 * pos_y_index + 1];
-        this->batched_data[batched_data_index++] = positions[3 * pos_y_index + 2];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_y_index];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_y_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_y_index];
-        this->batched_data[batched_data_index++] = normals[3 * norm_y_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_y_index + 2];
-
-        // Third vertex's data
-        this->batched_data[batched_data_index++] = positions[3 * pos_z_index];
-        this->batched_data[batched_data_index++] = positions[3 * pos_z_index + 1];
-        this->batched_data[batched_data_index++] = positions[3 * pos_z_index + 2];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_z_index];
-        this->batched_data[batched_data_index++] = uvs[2 * uv_z_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_z_index];
-        this->batched_data[batched_data_index++] = normals[3 * norm_z_index + 1];
-        this->batched_data[batched_data_index++] = normals[3 * norm_z_index + 2];
-    }
-
-    this->batched_index_length = face_count * 3; // 3 vertices per face
-    this->batched_index_data = (int*) malloc(this->batched_index_length * sizeof(int));
-
-    for (int i = 0, index_data_index = 0; i < face_count; i++) {
-        this->batched_index_data[index_data_index++] = i * 3;
-        this->batched_index_data[index_data_index++] = i * 3 + 1;
-        this->batched_index_data[index_data_index++] = i * 3 + 2;
-    }
-
-    mtl_file_path = mtl_file_path.substr(2); // Remove the ./ in the beginning
-    size_t slash_index = file_path.find_last_of("/");
-    std::string file_directory = file_path.substr(0, slash_index);
-    std::vector<Material> m = load_mtl_file(file_directory + "/" + mtl_file_path);
-    // after loading, create vertex buffers with faces that are to be rendered with the corresponding materials
-
-}
-
-ObjFileData::~ObjFileData() {
-    free(this->batched_data);
-    free(this->batched_index_data);
-}
-
-Image::Image(const std::string& file_path) {
-    stbi_set_flip_vertically_on_load(true);
-    int n;
-    this->image_data = stbi_load(file_path.c_str(), &(this->width), &(this->height), &n, 0);
-    if (image_data == nullptr) {
-        std::cout << "Couldn't load the image at: " << file_path << std::endl;
-        return;
-    }
-}
-
-Image::~Image() {
-    stbi_image_free(this->image_data);
-}
-
-std::vector<Material> ObjFileData::load_mtl_file(const std::string& file_path) {
+std::vector<Material> load_mtl_file(const std::string& file_path) {
     std::vector<Material> materials;
 
     std::ifstream stream(file_path);
@@ -232,4 +70,183 @@ std::vector<Material> ObjFileData::load_mtl_file(const std::string& file_path) {
 
     return materials;
 }
+
+std::vector<RenderUnit*> parse_faces(std::ifstream& stream,
+        std::string first_line,
+        const std::vector<Material>& materials,
+        const std::vector<float>& positions,
+        const std::vector<float>& uvs,
+        const std::vector<float>& normals) 
+{
+    std::istringstream line_stream;
+    std::string line = first_line;
+    std::string command;
+
+    line_stream.clear();
+    line_stream.str(line);
+    std::string mtl_name;
+    line_stream >> command >> mtl_name;
+
+    Material current_material = materials[0];
+    for (Material m : materials) {
+        if (m.name == mtl_name) {
+            current_material = m;
+        }
+    }
+
+    std::vector<int> current_face_data;
+    std::vector<RenderUnit*> render_units;
+
+    while (!stream.eof()) {
+        std::getline(stream, line);
+        if (line.find("f") == 0) {
+            char dummy[1];
+            int face_indices[9];
+            sscanf(line.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", dummy,
+                    &face_indices[0], &face_indices[1], &face_indices[2],
+                    &face_indices[3], &face_indices[4], &face_indices[5],
+                    &face_indices[6], &face_indices[7], &face_indices[8]);
+
+            for (int i = 0; i < 9; i++) {
+                face_indices[i]--;
+            }
+            
+            current_face_data.insert(current_face_data.end(), face_indices, face_indices + 9);
+        } else {
+            RenderUnit* ru = new RenderUnit(current_material, current_face_data, positions, uvs, normals);
+            render_units.push_back(ru);
+
+            while (std::getline(stream, line) && line.find("usemtl") != 0);
+            line_stream.clear();
+            line_stream.str(line);
+            line_stream >> command >> mtl_name;
+
+            for (Material m : materials) {
+                if (m.name == mtl_name) {
+                    current_material = m;
+                }
+            }
+        }
+    }
+
+    return render_units;
+}
+
+std::vector<RenderUnit*> load_obj_file(const std::string& file_path) {
+    std::ifstream stream(file_path);
+
+    std::string line;
+    std::string command;
+
+    // Ignore everything above mtllib
+    while (line.find("mtllib") != 0) {
+        std::getline(stream, line);
+    }
+
+    std::vector<float> positions;
+    std::vector<float> uvs;
+    std::vector<float> normals;
+    std::vector<RenderUnit*> render_units;
+
+    // Read the materials from the .mtl file
+    std::istringstream line_stream(line);
+    std::string mtl_file_path;
+    line_stream >> command >> mtl_file_path;
+    mtl_file_path = mtl_file_path.substr(2); // Remove the ./ in the beginning
+    size_t slash_index = file_path.find_last_of("/");
+    std::string file_directory = file_path.substr(0, slash_index);
+    std::vector<Material> materials = load_mtl_file(file_directory + "/" + mtl_file_path);
+
+    while (std::getline(stream, line)) {
+        line_stream.clear();
+        line_stream.str(line);
+
+        if (line.find("#") == 0) {
+            continue; // Comments
+        } else if (line.find("vt") == 0) {
+            float u, v;
+            line_stream >> command >> u >> v;
+            uvs.push_back(u);
+            uvs.push_back(v);
+        } else if (line.find("vn") == 0) {
+            float nx, ny, nz;
+            line_stream >> command >> nx >> ny >> nz;
+            normals.push_back(nx);
+            normals.push_back(ny);
+            normals.push_back(nz);
+        } else if (line.find("v") == 0) {
+            float x, y, z;
+            line_stream >> command >> x >> y >> z;
+            positions.push_back(x);
+            positions.push_back(y);
+            positions.push_back(z);
+        } else if (line.find("usemtl") == 0) {
+            render_units = parse_faces(stream, line, materials, positions, uvs, normals);
+            break; // The rest of the file is parsed in that function
+        }
+    }
+
+    return render_units;
+}
+
+
+RenderUnit::RenderUnit(Material material, const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data) {
+
+    // TODO @PERF: We have duplicate vertex data in this case
+
+    this->material = material;
+
+    const int floats_per_vertex = 8;
+    const int vertex_size = floats_per_vertex * sizeof(float);
+    int face_count = face_data.size() / 9;
+    this->vertex_data = (float*) malloc(face_count * 3 * vertex_size);
+    this->vertex_data_length = face_count * floats_per_vertex * 3;
+
+    for (int i = 0; i < face_data.size(); i += 9) {
+
+        float single_vertex_data[9];
+
+        single_vertex_data[0] = position_data[face_data[i]];
+        single_vertex_data[1] = uv_data[face_data[i + 1]];
+        single_vertex_data[2] = normal_data[face_data[i + 2]];
+
+        single_vertex_data[3] = position_data[face_data[i + 3]];
+        single_vertex_data[4] = uv_data[face_data[i + 4]];
+        single_vertex_data[5] = normal_data[face_data[i + 5]];
+
+        single_vertex_data[6] = position_data[face_data[i + 6]];
+        single_vertex_data[7] = uv_data[face_data[i + 7]];
+        single_vertex_data[8] = normal_data[face_data[i + 8]];
+
+        memcpy(this->vertex_data + i, single_vertex_data, 9);
+    }
+
+    // Yes, vert count. We just enumerate the vertices
+    int vertex_count = face_data.size() / 3; 
+    this->index_data = (int*) malloc(vertex_count * sizeof(int));
+    for (int i = 0; i < vertex_count; i++) {
+        this->index_data[i] = i;
+    }
+    this->index_data_length = vertex_count;
+}
+
+RenderUnit::~RenderUnit() {
+    free(this->vertex_data);
+    free(this->index_data);
+}
+
+Image::Image(const std::string& file_path) {
+    stbi_set_flip_vertically_on_load(true);
+    int n;
+    this->image_data = stbi_load(file_path.c_str(), &(this->width), &(this->height), &n, 0);
+    if (image_data == nullptr) {
+        std::cout << "Couldn't load the image at: " << file_path << std::endl;
+        return;
+    }
+}
+
+Image::~Image() {
+    stbi_image_free(this->image_data);
+}
+
 
