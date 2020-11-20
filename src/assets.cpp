@@ -6,6 +6,12 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <array>
+
+constexpr size_t floats_per_vertex = 8;
+constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
+constexpr size_t bytes_per_face = 3 * bytes_per_vertex;
+
 
 char* read_file(const char* file_path) {
     FILE* f = fopen(file_path, "rb");
@@ -74,9 +80,7 @@ std::vector<Material> load_mtl_file(const std::string& file_path) {
 std::vector<RenderUnit*> parse_faces(std::ifstream& stream,
         std::string first_line,
         const std::vector<Material>& materials,
-        const std::vector<float>& positions,
-        const std::vector<float>& uvs,
-        const std::vector<float>& normals) 
+        const ObjModelData& obj_data)
 {
     std::istringstream line_stream;
     std::string line = first_line;
@@ -113,7 +117,7 @@ std::vector<RenderUnit*> parse_faces(std::ifstream& stream,
             
             current_face_data.insert(current_face_data.end(), face_indices, face_indices + 9);
         } else {
-            RenderUnit* ru = new RenderUnit(current_material, current_face_data, positions, uvs, normals);
+            RenderUnit* ru = new RenderUnit(current_material, current_face_data, obj_data);
             render_units.push_back(ru);
 
             while (std::getline(stream, line) && line.find("usemtl") != 0);
@@ -143,9 +147,7 @@ std::vector<RenderUnit*> load_obj_file(const std::string& file_path) {
         std::getline(stream, line);
     }
 
-    std::vector<float> positions;
-    std::vector<float> uvs;
-    std::vector<float> normals;
+    ObjModelData obj_data;
     std::vector<RenderUnit*> render_units;
 
     // Read the materials from the .mtl file
@@ -166,26 +168,28 @@ std::vector<RenderUnit*> load_obj_file(const std::string& file_path) {
         } else if (line.find("vt") == 0) {
             float u, v;
             line_stream >> command >> u >> v;
-            uvs.push_back(u);
-            uvs.push_back(v);
+            obj_data.uv_data.push_back(u);
+            obj_data.uv_data.push_back(v);
         } else if (line.find("vn") == 0) {
             float nx, ny, nz;
             line_stream >> command >> nx >> ny >> nz;
-            normals.push_back(nx);
-            normals.push_back(ny);
-            normals.push_back(nz);
+            obj_data.normal_data.push_back(nx);
+            obj_data.normal_data.push_back(ny);
+            obj_data.normal_data.push_back(nz);
         } else if (line.find("v") == 0) {
             float x, y, z;
             line_stream >> command >> x >> y >> z;
-            positions.push_back(x);
-            positions.push_back(y);
-            positions.push_back(z);
+            obj_data.position_data.push_back(x);
+            obj_data.position_data.push_back(y);
+            obj_data.position_data.push_back(z);
         } else if (line.find("usemtl") == 0) {
             // Pos/uv/norm information is parsed until this point
             // From now on we only have the face information
             // The rest of the file is parsed in that function 
             // TODO: This is not good code. Feels weird
-            render_units = parse_faces(stream, line, materials, positions, uvs, normals);
+            // Probably gonna want to open the file the second time
+            // and seek until this line
+            render_units = parse_faces(stream, line, materials, obj_data);
             break; 
         }
     }
@@ -193,11 +197,28 @@ std::vector<RenderUnit*> load_obj_file(const std::string& file_path) {
     return render_units;
 }
 
-void get_vertex_info(const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data) {
+std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int vertex_index, const std::vector<int>& face_data, const ObjModelData& obj_data) {
 
+    int offset_in_face = vertex_index * 3;
+    int pos_index = face_data[face_index + offset_in_face];
+    int uv_index = face_data[face_index + offset_in_face + 1];
+    int norm_index = face_data[face_index + offset_in_face + 2];
+
+    std::array<float, floats_per_vertex> single_vertex_data;
+    single_vertex_data[0] = obj_data.position_data[pos_index * 3];
+    single_vertex_data[1] = obj_data.position_data[pos_index * 3 + 1];
+    single_vertex_data[2] = obj_data.position_data[pos_index * 3 + 2];
+    single_vertex_data[3] = obj_data.uv_data[uv_index * 2];
+    single_vertex_data[4] = obj_data.uv_data[uv_index * 2 + 1];
+    single_vertex_data[5] = obj_data.normal_data[norm_index * 3];
+    single_vertex_data[6] = obj_data.normal_data[norm_index * 3 + 1];
+    single_vertex_data[7] = obj_data.normal_data[norm_index * 3 + 2];
+
+    return single_vertex_data;
 }
 
-RenderUnit::RenderUnit(Material material, const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data) {
+
+RenderUnit::RenderUnit(Material material, const std::vector<int>& face_data, const ObjModelData& obj_data) {
 
     // TODO @PERF: We have duplicate vertex data in this case
     // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
@@ -206,47 +227,28 @@ RenderUnit::RenderUnit(Material material, const std::vector<int>& face_data, con
 
     this->material = material;
 
-    const int floats_per_vertex = 8;
-    const size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
     int face_count = face_data.size() / 9;
-    this->vertex_data = (float*) malloc(face_count * 3 * bytes_per_vertex);
+    this->vertex_data = (float*) malloc(face_count * bytes_per_face);
     this->vertex_data_length = face_count * floats_per_vertex * 3;
 
-    for (int i = 0, vertex_index = 0; i < face_data.size(); i += 9) {
-        float first_vertex_data[floats_per_vertex];
-        first_vertex_data[0] = position_data[face_data[i] * 3];
-        first_vertex_data[1] = position_data[face_data[i] * 3 + 1];
-        first_vertex_data[2] = position_data[face_data[i] * 3 + 2];
-        first_vertex_data[3] = uv_data[face_data[i + 1] * 2];
-        first_vertex_data[4] = uv_data[face_data[i + 1] * 2 + 1];
-        first_vertex_data[5] = normal_data[face_data[i + 2] * 3];
-        first_vertex_data[6] = normal_data[face_data[i + 2] * 3 + 1];
-        first_vertex_data[7] = normal_data[face_data[i + 2] * 3 + 2];
-        memcpy(this->vertex_data + vertex_index * floats_per_vertex, first_vertex_data, bytes_per_vertex);
+    for (int face_index = 0; face_index < face_count; face_index++) {
+
+        int face_data_index = face_index * 9;
+        int vertex_index = 0;
+
+        int buffer_offset = face_index * floats_per_vertex * 3 + vertex_index * floats_per_vertex;
+        std::array<float, floats_per_vertex> first_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_data, obj_data);
+        memcpy(this->vertex_data + buffer_offset, first_vertex_data.data(), bytes_per_vertex);
         vertex_index++;
 
-        float second_vertex_data[floats_per_vertex];
-        second_vertex_data[0] = position_data[face_data[i + 3] * 3];
-        second_vertex_data[1] = position_data[face_data[i + 3] * 3 + 1];
-        second_vertex_data[2] = position_data[face_data[i + 3] * 3 + 2];
-        second_vertex_data[3] = uv_data[face_data[i + 4] * 2];
-        second_vertex_data[4] = uv_data[face_data[i + 4] * 2 + 1];
-        second_vertex_data[5] = normal_data[face_data[i + 5] * 3];
-        second_vertex_data[6] = normal_data[face_data[i + 5] * 3 + 1];
-        second_vertex_data[7] = normal_data[face_data[i + 5] * 3 + 2];
-        memcpy(this->vertex_data + vertex_index * floats_per_vertex, second_vertex_data, bytes_per_vertex);
+        buffer_offset += floats_per_vertex; // Advance one vertex
+        std::array<float, floats_per_vertex> second_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_data, obj_data);
+        memcpy(this->vertex_data + buffer_offset, second_vertex_data.data(), bytes_per_vertex);
         vertex_index++;
 
-        float third_vertex_data[floats_per_vertex];
-        third_vertex_data[0] = position_data[face_data[i + 6] * 3];
-        third_vertex_data[1] = position_data[face_data[i + 6] * 3 + 1];
-        third_vertex_data[2] = position_data[face_data[i + 6] * 3 + 2];
-        third_vertex_data[3] = uv_data[face_data[i + 7] * 2];
-        third_vertex_data[4] = uv_data[face_data[i + 7] * 2 + 1];
-        third_vertex_data[5] = normal_data[face_data[i + 8] * 3];
-        third_vertex_data[6] = normal_data[face_data[i + 8] * 3 + 1];
-        third_vertex_data[7] = normal_data[face_data[i + 8] * 3 + 2];
-        memcpy(this->vertex_data + vertex_index * floats_per_vertex, third_vertex_data, bytes_per_vertex);
+        buffer_offset += floats_per_vertex; // Advance one vertex
+        std::array<float, floats_per_vertex> third_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_data, obj_data);
+        memcpy(this->vertex_data + buffer_offset, third_vertex_data.data(), bytes_per_vertex);
         vertex_index++;
     }
 

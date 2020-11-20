@@ -1,5 +1,6 @@
-// TODO:
-// debug with triangle, create a mtl for it
+// TODO
+// render unit extraction works. render all the units from one obj file
+// that's gonna require some file reorganization probably
 
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
@@ -71,7 +72,7 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    std::vector<RenderUnit*> render_units = load_obj_file("../assets/quad.obj");
+    std::vector<RenderUnit*> render_units = load_obj_file("../assets/test_lighting.obj");
     RenderUnit* ru = render_units[0];
 
     double mouse_x, mouse_y;
