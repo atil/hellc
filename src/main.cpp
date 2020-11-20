@@ -71,7 +71,7 @@ int main() {
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    std::vector<RenderUnit*> render_units = load_obj_file("../assets/test_lighting.obj");
+    std::vector<RenderUnit*> render_units = load_obj_file("../assets/quad.obj");
     RenderUnit* ru = render_units[0];
 
     double mouse_x, mouse_y;
@@ -114,7 +114,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->image_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->image_data);
 
     int shader_program_id = load_shader_program("../src/world.glsl");
     glm::mat4 model = glm::mat4(1);

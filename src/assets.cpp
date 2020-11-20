@@ -181,44 +181,73 @@ std::vector<RenderUnit*> load_obj_file(const std::string& file_path) {
             positions.push_back(y);
             positions.push_back(z);
         } else if (line.find("usemtl") == 0) {
+            // Pos/uv/norm information is parsed until this point
+            // From now on we only have the face information
+            // The rest of the file is parsed in that function 
+            // TODO: This is not good code. Feels weird
             render_units = parse_faces(stream, line, materials, positions, uvs, normals);
-            break; // The rest of the file is parsed in that function
+            break; 
         }
     }
 
     return render_units;
 }
 
+void get_vertex_info(const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data) {
+
+}
 
 RenderUnit::RenderUnit(Material material, const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data) {
 
     // TODO @PERF: We have duplicate vertex data in this case
+    // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
+    // If we want to save buffer space, we must get the individual vertices
+    // only once and arrange the index buffer accordingly
 
     this->material = material;
 
     const int floats_per_vertex = 8;
-    const int vertex_size = floats_per_vertex * sizeof(float);
+    const size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
     int face_count = face_data.size() / 9;
-    this->vertex_data = (float*) malloc(face_count * 3 * vertex_size);
+    this->vertex_data = (float*) malloc(face_count * 3 * bytes_per_vertex);
     this->vertex_data_length = face_count * floats_per_vertex * 3;
 
-    for (int i = 0; i < face_data.size(); i += 9) {
+    for (int i = 0, vertex_index = 0; i < face_data.size(); i += 9) {
+        float first_vertex_data[floats_per_vertex];
+        first_vertex_data[0] = position_data[face_data[i] * 3];
+        first_vertex_data[1] = position_data[face_data[i] * 3 + 1];
+        first_vertex_data[2] = position_data[face_data[i] * 3 + 2];
+        first_vertex_data[3] = uv_data[face_data[i + 1] * 2];
+        first_vertex_data[4] = uv_data[face_data[i + 1] * 2 + 1];
+        first_vertex_data[5] = normal_data[face_data[i + 2] * 3];
+        first_vertex_data[6] = normal_data[face_data[i + 2] * 3 + 1];
+        first_vertex_data[7] = normal_data[face_data[i + 2] * 3 + 2];
+        memcpy(this->vertex_data + vertex_index * floats_per_vertex, first_vertex_data, bytes_per_vertex);
+        vertex_index++;
 
-        float single_vertex_data[9];
+        float second_vertex_data[floats_per_vertex];
+        second_vertex_data[0] = position_data[face_data[i + 3] * 3];
+        second_vertex_data[1] = position_data[face_data[i + 3] * 3 + 1];
+        second_vertex_data[2] = position_data[face_data[i + 3] * 3 + 2];
+        second_vertex_data[3] = uv_data[face_data[i + 4] * 2];
+        second_vertex_data[4] = uv_data[face_data[i + 4] * 2 + 1];
+        second_vertex_data[5] = normal_data[face_data[i + 5] * 3];
+        second_vertex_data[6] = normal_data[face_data[i + 5] * 3 + 1];
+        second_vertex_data[7] = normal_data[face_data[i + 5] * 3 + 2];
+        memcpy(this->vertex_data + vertex_index * floats_per_vertex, second_vertex_data, bytes_per_vertex);
+        vertex_index++;
 
-        single_vertex_data[0] = position_data[face_data[i]];
-        single_vertex_data[1] = uv_data[face_data[i + 1]];
-        single_vertex_data[2] = normal_data[face_data[i + 2]];
-
-        single_vertex_data[3] = position_data[face_data[i + 3]];
-        single_vertex_data[4] = uv_data[face_data[i + 4]];
-        single_vertex_data[5] = normal_data[face_data[i + 5]];
-
-        single_vertex_data[6] = position_data[face_data[i + 6]];
-        single_vertex_data[7] = uv_data[face_data[i + 7]];
-        single_vertex_data[8] = normal_data[face_data[i + 8]];
-
-        memcpy(this->vertex_data + i, single_vertex_data, 9);
+        float third_vertex_data[floats_per_vertex];
+        third_vertex_data[0] = position_data[face_data[i + 6] * 3];
+        third_vertex_data[1] = position_data[face_data[i + 6] * 3 + 1];
+        third_vertex_data[2] = position_data[face_data[i + 6] * 3 + 2];
+        third_vertex_data[3] = uv_data[face_data[i + 7] * 2];
+        third_vertex_data[4] = uv_data[face_data[i + 7] * 2 + 1];
+        third_vertex_data[5] = normal_data[face_data[i + 8] * 3];
+        third_vertex_data[6] = normal_data[face_data[i + 8] * 3 + 1];
+        third_vertex_data[7] = normal_data[face_data[i + 8] * 3 + 2];
+        memcpy(this->vertex_data + vertex_index * floats_per_vertex, third_vertex_data, bytes_per_vertex);
+        vertex_index++;
     }
 
     // Yes, vert count. We just enumerate the vertices
