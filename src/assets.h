@@ -1,41 +1,29 @@
-#ifndef _ASSETS_H_
-#define _ASSETS_H_
-
-#include <vector>
+#pragma once
 #include <string>
+#include <vector>
 
-struct Material {
-    std::string name;
-    std::string diffuse_texture_name;
-    float diffuse[3];
-    float transparency;
-};
-
-class RenderUnit {
+class ObjFaceData {
 public:
-    Material material;
-    float* vertex_data;
-    int vertex_data_length;
+    std::string material_name;
+    std::vector<int> indices;
 
-    int* index_data;
-    int index_data_length;
+    ObjFaceData() { }
 
-    RenderUnit(Material material, const std::vector<int>& face_data, const std::vector<float>& position_data, const std::vector<float>& uv_data, const std::vector<float>& normal_data);
-    ~RenderUnit();
+    ObjFaceData(const ObjFaceData& other) {
+        this->material_name = other.material_name;
+        this->indices = other.indices;
+    }
 };
 
-std::vector<RenderUnit*> load_obj_file(const std::string& file_path);
-
-class Image {
+class ObjModelData {
 public:
-    int width;
-    int height;
-    unsigned char* image_data;
+    std::string mtllib_path;
 
-    Image(const std::string& file_path);
-    ~Image();
+    // TODO: These aren't mutable stuff. Consider something else than a vector
+    std::vector<float> position_data;
+    std::vector<float> uv_data;
+    std::vector<float> normal_data;
+    std::vector<ObjFaceData> face_data;
+
+    ObjModelData(const std::string& file_path);
 };
-
-char* read_file(const char* file_path);
-
-#endif

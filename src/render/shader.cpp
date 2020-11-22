@@ -1,10 +1,30 @@
-#include <stdio.h>
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include "assets.h"
 #include "render.h"
+
+char* read_file(const char* file_path) {
+    FILE* f = fopen(file_path, "rb");
+    if (!f) {
+        std::cout << "Failed to open file " << file_path << std::endl;
+        return nullptr;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long length = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char* buffer = (char*) malloc(length + 1);
+    fread(buffer, sizeof(char), length, f);
+    fclose(f);
+    buffer[length] = 0;
+
+    return buffer;
+}
+
 
 int load_shader(const char* header, const char* program_string, int shader_type) {
     // Concat header with the whole program's string
@@ -23,7 +43,7 @@ int load_shader(const char* header, const char* program_string, int shader_type)
     int is_success;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &is_success);
     if (is_success == GL_FALSE) {
-        printf("Failed to compile shader\n");
+        std::cout << "Failed to compile shader" << std::endl;
         int log_length;
         glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
 
@@ -79,7 +99,7 @@ int get_location(int shader_program_id, const char* property_name) {
     /* printf("got location\n"); */
     if (loc == -1)
     {
-        printf("Couldn't find shader property: %s\n", property_name);
+        std::cout << "Couldn't find shader property: " << property_name << std::endl;
         return -1;
     }
     return loc;
@@ -89,7 +109,7 @@ void check_uniform_error(const char* property_name) {
     int error = GL_NO_ERROR;
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        printf("Error when setting uniform %s, error code: %d\n", property_name, error);
+        std::cout << "Error when setting uniform " << property_name << "error code: " << error << std::endl;
     }
 }
 
