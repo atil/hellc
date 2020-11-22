@@ -7,7 +7,7 @@ public:
     std::string material_name;
     std::vector<int> indices;
 
-    ObjFaceData() { }
+    ObjFaceData() = default;
 
     ObjFaceData(const ObjFaceData& other) {
         this->material_name = other.material_name;

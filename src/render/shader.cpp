@@ -1,43 +1,22 @@
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS // TODO: Is it possible to remove these?
 #include <iostream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#define GLEW_STATIC
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include "render.h"
 
-char* read_file(const char* file_path) {
-    FILE* f = fopen(file_path, "rb");
-    if (!f) {
-        std::cout << "Failed to open file " << file_path << std::endl;
-        return nullptr;
-    }
-
-    fseek(f, 0, SEEK_END);
-    long length = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char* buffer = (char*) malloc(length + 1);
-    fread(buffer, sizeof(char), length, f);
-    fclose(f);
-    buffer[length] = 0;
-
-    return buffer;
-}
-
-
-int load_shader(const char* header, const char* program_string, int shader_type) {
+int load_shader(const std::string& header, const std::string& program_string, int shader_type) {
     // Concat header with the whole program's string
-    int shader_string_len = strlen(header) + strlen(program_string) + 1;
-    char* shader_string = (char*) calloc(shader_string_len, sizeof(char));
-    strcat(shader_string, header);
-    strcat(shader_string, program_string);
-    shader_string[shader_string_len] = '\0';
+    std::string shader_string = header + program_string;
 
-    int shader_id = glCreateShader(shader_type);
-    glShaderSource(shader_id, 1, &shader_string, NULL);
+    const char* cstr = shader_string.c_str();
+
+    const int shader_id = glCreateShader(shader_type);
+    glShaderSource(shader_id, 1, &cstr, nullptr);
     glCompileShader(shader_id);
-    free(shader_string);
 
     // Check for compile errors
     int is_success;
@@ -47,10 +26,10 @@ int load_shader(const char* header, const char* program_string, int shader_type)
         int log_length;
         glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
 
-        char* log = (char*) malloc(log_length);
+        char* log = static_cast<char*>(malloc(log_length));
         glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
-        printf("%s\n", log);
+        std::cout << log << std::endl;
         free(log);
         glDeleteShader(shader_id);
         return -1;
@@ -59,8 +38,16 @@ int load_shader(const char* header, const char* program_string, int shader_type)
     return shader_id;
 }
 
-int load_shader_program(const char* shader_path) {
-    char* program_string = read_file(shader_path);
+int load_shader_program(const std::string& shader_path) {
+	const std::ifstream shader_stream(shader_path);
+    if (!shader_stream.is_open()) {
+        std::cout << "Failed to open shader file" << shader_path << std::endl;
+        return -1;
+    }
+	std::stringstream buffer;
+	buffer << shader_stream.rdbuf();
+	const std::string program_string = buffer.str();
+
     int vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
     int frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
 
@@ -71,7 +58,6 @@ int load_shader_program(const char* shader_path) {
 
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
-    free(program_string);
 
     // Check for link errors
     int is_success;
@@ -81,8 +67,10 @@ int load_shader_program(const char* shader_path) {
         int log_length;
         glGetShaderiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
 
-        char* log = (char*) malloc(log_length);
+        char* log = static_cast<char*>(malloc(log_length));
         glGetShaderInfoLog(shader_program, log_length, &log_length, log);
+
+        std::cout << "Shader link error: " << log << std::endl;
 
         free(log);
         glDeleteShader(shader_program);
@@ -93,10 +81,7 @@ int load_shader_program(const char* shader_path) {
 }
 
 int get_location(int shader_program_id, const char* property_name) {
-    /* printf("about to get the location for:\n"); */
-    /* printf("%s %d\n", property_name, shader_program_id); */
     int loc = glGetUniformLocation(shader_program_id, property_name);
-    /* printf("got location\n"); */
     if (loc == -1)
     {
         std::cout << "Couldn't find shader property: " << property_name << std::endl;

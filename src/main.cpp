@@ -50,10 +50,10 @@ void process_input(Input* input, GLFWwindow* window) {
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
-    input->mouse_x = (float) mouse_x;
-    input->mouse_y = (float) mouse_y;
-    input->prev_mouse_x = (float) prev_mouse_x;
-    input->prev_mouse_y = (float) prev_mouse_y;
+    input->mouse_x = static_cast<float>(mouse_x);
+    input->mouse_y = static_cast<float>(mouse_y);
+    input->prev_mouse_x = static_cast<float>(prev_mouse_x);
+    input->prev_mouse_y = static_cast<float>(prev_mouse_y);
 }
 
 int main() {
@@ -65,16 +65,16 @@ int main() {
 
     Renderer renderer;
 
-    ObjModelData obj_data("../assets/test_lighting.obj");
+    const ObjModelData obj_data("assets/triangle.obj");
     renderer.register_obj(obj_data);
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
-    Input* input = (Input*) malloc(sizeof(Input));
-    input->mouse_x = (float) mouse_x;
-    input->mouse_y = (float) mouse_y;
+    Input* input = static_cast<Input*>(malloc(sizeof(Input)));
+    input->mouse_x = static_cast<float>(mouse_x);
+    input->mouse_y = static_cast<float>(mouse_y);
 
-    Player* player = (Player*) malloc(sizeof(Player));
+    Player* player = static_cast<Player*>(malloc(sizeof(Player)));
     init_player(player);
 
     float prev_time = glfwGetTime();

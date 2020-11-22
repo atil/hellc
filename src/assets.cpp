@@ -34,7 +34,7 @@ ObjModelData::ObjModelData(const std::string& file_path) {
     std::string mtllib_name;
     line_stream >> command >> mtllib_name;
     mtllib_name = mtllib_name.substr(2); // Remove the ./ in the beginning
-    size_t slash_index = file_path.find_last_of("/");
+    size_t slash_index = file_path.find_last_of('/');
     this->mtllib_path = file_path.substr(0, slash_index) + "/" + mtllib_name;
 
     ObjFaceData current_face_data;
@@ -42,7 +42,7 @@ ObjModelData::ObjModelData(const std::string& file_path) {
         line_stream.clear();
         line_stream.str(line);
 
-        if (line.find("#") == 0) {
+        if (line.find('#') == 0) {
             continue;
         } else if (line.find("vt") == 0) {
             float u, v;
@@ -55,7 +55,7 @@ ObjModelData::ObjModelData(const std::string& file_path) {
             this->normal_data.push_back(nx);
             this->normal_data.push_back(ny);
             this->normal_data.push_back(nz);
-        } else if (line.find("v") == 0) {
+        } else if (line.find('v') == 0) {
             float x, y, z;
             line_stream >> command >> x >> y >> z;
             this->position_data.push_back(x);
@@ -68,7 +68,7 @@ ObjModelData::ObjModelData(const std::string& file_path) {
             }
             line_stream >> command >> current_face_data.material_name;
             current_face_data.indices.clear();
-        } else if (line.find("f") == 0) {
+        } else if (line.find('f') == 0) {
             char dummy[1];
             int face_indices[9];
             sscanf(line.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", dummy,

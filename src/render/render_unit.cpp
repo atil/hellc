@@ -1,10 +1,10 @@
+#pragma warning(push, 0)
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#pragma warning(pop)
 #include "render.h"
-#include <stdlib.h>
-#include <fstream>
+#include <cstdlib>
 #include <iostream>
-#include <sstream>
 #include <array>
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -47,7 +47,7 @@ RenderUnit::RenderUnit(Material material, const ObjFaceData& obj_face_data, cons
 
     const std::vector<int>& face_indices = obj_face_data.indices;
 
-    int face_count = face_indices.size() / 9;
+    size_t face_count = face_indices.size() / 9;
     float* vertex_data = (float*) malloc(face_count * bytes_per_face);
     int vertex_data_length = face_count * floats_per_vertex * 3;
 
@@ -74,7 +74,7 @@ RenderUnit::RenderUnit(Material material, const ObjFaceData& obj_face_data, cons
 
     // Yes, vert count. We just enumerate the vertices
     int vertex_count = face_indices.size() / 3; 
-    int* index_data = (int*) malloc(vertex_count * sizeof(int));
+    int* index_data = static_cast<int*>(malloc(vertex_count * sizeof(int)));
     for (int i = 0; i < vertex_count; i++) {
         index_data[i] = i;
     }
@@ -93,17 +93,17 @@ RenderUnit::RenderUnit(Material material, const ObjFaceData& obj_face_data, cons
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glGenBuffers(1, &(this->ibo));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data, GL_STATIC_DRAW);
 
-    std::string image_path = "../assets/" + material.diffuse_texture_name;
-    Image image(image_path);
+    const std::string image_path = "assets/" + material.diffuse_texture_name;
+    const Image image(image_path);
     glGenTextures(1, &(this->tex_handle));
     glBindTexture(GL_TEXTURE_2D, this->tex_handle);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -112,10 +112,10 @@ RenderUnit::RenderUnit(Material material, const ObjFaceData& obj_face_data, cons
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
 
-    this->shader_program_handle = load_shader_program("../src/render/world.glsl");
+    this->shader_program_handle = load_shader_program("src/render/world.glsl");
     glm::mat4 model = glm::mat4(1);
     // TODO: This is the same for everything. Coud be somewhere global maybe?
-    glm::mat4 perspective = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
+    glm::mat4 perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.01f, 100.0f);
 
     glUseProgram(this->shader_program_handle);
     set_int(this->shader_program_handle, "u_texture", 0);
@@ -126,7 +126,9 @@ RenderUnit::RenderUnit(Material material, const ObjFaceData& obj_face_data, cons
     free(index_data);
 }
 
-void RenderUnit::render(glm::mat4 player_view_matrix) {
+void RenderUnit::render(glm::mat4 player_view_matrix) const
+{
+    glBindVertexArray(this->vao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->tex_handle);
     set_mat4(this->shader_program_handle, "u_view", player_view_matrix);
@@ -143,11 +145,12 @@ RenderUnit::~RenderUnit() {
 
 Image::Image(const std::string& file_path) {
     stbi_set_flip_vertically_on_load(true);
-    int n;
-    this->image_data = stbi_load(file_path.c_str(), &(this->width), &(this->height), &n, 0);
+    int x, y, n;
+    this->image_data = stbi_load(file_path.c_str(), &x, &y, &n, 0);
+    this->width = x;
+    this->height = y;
     if (image_data == nullptr) {
         std::cout << "Couldn't load the image at: " << file_path << std::endl;
-        return;
     }
 }
 

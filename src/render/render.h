@@ -4,7 +4,7 @@
 #include <string>
 #include "../assets.h"
 
-int load_shader_program(const char* shader_path);
+int load_shader_program(const std::string& shader_path);
 void set_int(int shader_program_id, const char* property_name, int i);
 void set_vec3(int shader_program_id, const char* property_name, glm::vec3 v);
 void set_mat4(int shader_program_id, const char* property_name, glm::mat4 m);
@@ -41,7 +41,7 @@ public:
     RenderUnit(Material material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data);
     ~RenderUnit();
 
-    void render(glm::mat4 player_view_matrix);
+    void render(glm::mat4 player_view_matrix) const;
 };
 
 class Renderer {
