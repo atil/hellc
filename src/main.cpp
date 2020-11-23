@@ -1,22 +1,17 @@
 // TODO
-// - make it compile
-// - probably you're gonna have to bind some stuff in the render
-// - debug
+// - triangle is working. try quad and lighting test
+// - take a look if there's any c-like thing is remaining
+// - window stuff is used in here, renderer and render unit. find a good solution
 
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <vector>
-#include <stdlib.h>
+#include <GLFW/glfw3.h>
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include "render/render.h"
 #include "input.h"
 #include "assets.h"
 #include "world.h"
-#include <GLFW/glfw3.h>
-#define GLEW_STATIC
-#include <GL/glew.h>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480

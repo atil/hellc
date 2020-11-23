@@ -8,18 +8,18 @@
 #include <glm/glm.hpp>
 #include "render.h"
 
-int load_shader(const std::string& header, const std::string& program_string, int shader_type) {
+shader_handle_t load_shader(const std::string& header, const std::string& program_string, int shader_type) {
     // Concat header with the whole program's string
-    std::string shader_string = header + program_string;
+    const std::string shader_string = header + program_string;
 
     const char* cstr = shader_string.c_str();
 
-    const int shader_id = glCreateShader(shader_type);
+    const shader_handle_t shader_id = glCreateShader(shader_type);
     glShaderSource(shader_id, 1, &cstr, nullptr);
     glCompileShader(shader_id);
 
     // Check for compile errors
-    int is_success;
+    GLint is_success;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &is_success);
     if (is_success == GL_FALSE) {
         std::cout << "Failed to compile shader" << std::endl;
@@ -38,20 +38,22 @@ int load_shader(const std::string& header, const std::string& program_string, in
     return shader_id;
 }
 
-int load_shader_program(const std::string& shader_path) {
-	const std::ifstream shader_stream(shader_path);
+Shader::Shader(const std::string& file_path) {
+	const std::ifstream shader_stream(file_path);
     if (!shader_stream.is_open()) {
-        std::cout << "Failed to open shader file" << shader_path << std::endl;
-        return -1;
+        std::cout << "Failed to open shader file" << file_path << std::endl;
+        this->shader_program_handle = -1;
+        return;
     }
+
 	std::stringstream buffer;
 	buffer << shader_stream.rdbuf();
 	const std::string program_string = buffer.str();
 
-    int vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
-    int frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
+	const shader_handle_t vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
+	const shader_handle_t frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
 
-    int shader_program = glCreateProgram();
+	const shader_handle_t shader_program = glCreateProgram();
     glAttachShader(shader_program, frag_shader);
     glAttachShader(shader_program, vert_shader);
     glLinkProgram(shader_program);
@@ -74,51 +76,54 @@ int load_shader_program(const std::string& shader_path) {
 
         free(log);
         glDeleteShader(shader_program);
-        return -1;
+        this->shader_program_handle = -1;
+        return;
     }
 
-    return shader_program;
+    this->shader_program_handle = shader_program;
 }
 
-int get_location(int shader_program_id, const char* property_name) {
-    int loc = glGetUniformLocation(shader_program_id, property_name);
-    if (loc == -1)
-    {
-        std::cout << "Couldn't find shader property: " << property_name << std::endl;
+void Shader::use() const {
+    glUseProgram(this->shader_program_handle);
+}
+
+uniform_loc_t Shader::get_location(const std::string& property_name) const {
+	const uniform_loc_t loc = glGetUniformLocation(this->shader_program_handle, property_name.c_str());
+    if (loc == -1) {
+        std::cout << "Error when getting shader property location: " << property_name << std::endl;
         return -1;
     }
     return loc;
 }
 
-void check_uniform_error(const char* property_name) {
-    int error = GL_NO_ERROR;
-    error = glGetError();
+void check_uniform_error(const std::string& property_name) {
+	const GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        std::cout << "Error when setting uniform " << property_name << "error code: " << error << std::endl;
+        std::cout << "Error when setting uniform [" << property_name << "] error code: " << error << std::endl;
     }
 }
 
-void set_int(int shader_program_id, const char* property_name, int i) {
-    glUniform1i(get_location(shader_program_id, property_name), i);
+void Shader::set_int(const std::string& property_name, int i) const {
+    glUniform1i(this->get_location(property_name), i);
     check_uniform_error(property_name);
 }
 
-void set_vec3(int shader_program_id, const char* property_name, glm::vec3 v) {
-    glUniform3fv(get_location(shader_program_id, property_name), 1, (const float*) &v[0]);
+void Shader::set_vec3(const std::string& property_name, const glm::vec3& v) const {
+    glUniform3fv(get_location(property_name), 1, static_cast<const float*>(&v[0]));
     check_uniform_error(property_name);
 }
 
-void set_mat4(int shader_program_id, const char* property_name, glm::mat4 m) {
-    glUniformMatrix4fv(get_location(shader_program_id, property_name), 1, GL_FALSE, &m[0][0]);
+void Shader::set_mat4(const std::string& property_name, const glm::mat4& m) const {
+    glUniformMatrix4fv(get_location(property_name), 1, GL_FALSE, &m[0][0]);
     check_uniform_error(property_name);
 }
 
-void set_float(int shader_program_id, const char* property_name, float f) {
-    glUniform1f(get_location(shader_program_id, property_name), f);
+void Shader::set_float(const std::string& property_name, float f) const {
+    glUniform1f(get_location(property_name), f);
     check_uniform_error(property_name);
 }
 
-void delete_shader_program(int shader_program_id) {
-    glDeleteShader(shader_program_id);
+Shader::~Shader() {
+    glDeleteProgram(this->shader_program_handle);
 }
 

@@ -60,23 +60,28 @@ std::vector<Material> load_mtl_file(const std::string& file_path) {
 }
 
 void Renderer::register_obj(const ObjModelData& obj_data) {
-
     std::vector<Material> materials = load_mtl_file(obj_data.mtllib_path);
 
     for (const ObjFaceData& obj_face_data : obj_data.face_data) {
         for (Material& m : materials) {
             if (m.name == obj_face_data.material_name) {
-                RenderUnit ru(m, obj_face_data, obj_data);
+                RenderUnit* ru = new RenderUnit(m, obj_face_data, obj_data);
                 this->render_units.push_back(ru);
             }
         }
     }
 }
 
-void Renderer::render(glm::mat4 player_view_matrix) {
+void Renderer::render(const glm::mat4& player_view_matrix) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (RenderUnit ru : this->render_units) {
-        ru.render(player_view_matrix);
+    for (RenderUnit* ru : this->render_units) {
+        ru->render(player_view_matrix);
+    }
+}
+
+Renderer::~Renderer() {
+    for (RenderUnit* ru : this->render_units) {
+        delete ru;
     }
 }

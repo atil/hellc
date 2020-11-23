@@ -5,15 +5,6 @@
 #include <cstdio>
 #include <sstream>
 
-// Read the materials from the .mtl file
-/* std::istringstream line_stream(line); */
-/* std::string mtl_file_path; */
-/* line_stream >> command >> mtl_file_path; */
-/* mtl_file_path = mtl_file_path.substr(2); // Remove the ./ in the beginning */
-/* size_t slash_index = file_path.find_last_of("/"); */
-/* std::string file_directory = file_path.substr(0, slash_index); */
-/* std::vector<Material> materials = load_mtl_file(file_directory + "/" + mtl_file_path); */
-
 ObjModelData::ObjModelData(const std::string& file_path) {
     std::ifstream stream(file_path);
     if (!stream.is_open()) {
@@ -69,9 +60,9 @@ ObjModelData::ObjModelData(const std::string& file_path) {
             line_stream >> command >> current_face_data.material_name;
             current_face_data.indices.clear();
         } else if (line.find('f') == 0) {
-            char dummy[1];
+            char dummy;
             int face_indices[9];
-            sscanf(line.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", dummy,
+            sscanf(line.c_str(), "%c %d/%d/%d %d/%d/%d %d/%d/%d", &dummy,
                     &face_indices[0], &face_indices[1], &face_indices[2],
                     &face_indices[3], &face_indices[4], &face_indices[5],
                     &face_indices[6], &face_indices[7], &face_indices[8]);
