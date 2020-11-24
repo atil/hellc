@@ -162,6 +162,7 @@
     <ClCompile Include="src\assets.cpp" />
     <ClCompile Include="src\geom.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\platform.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\render\renderer.cpp" />
     <ClCompile Include="src\render\render_unit.cpp" />
@@ -200,7 +201,7 @@
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="src\assets.h" />
     <ClInclude Include="src\config.h" />
-    <ClInclude Include="src\input.h" />
+    <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\render\render.h" />
     <ClInclude Include="src\world.h" />
   </ItemGroup>

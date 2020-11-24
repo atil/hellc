@@ -1,5 +1,7 @@
 #include "world.h"
 
+// TODO: C++ify this
+
 Triangle* create_triangle(float* vertex_data, int vertex_count, int* index_data, int index_data_length) {
 
     int triangle_count = index_data_length / 3;

@@ -1,10 +1,9 @@
-#ifndef _WORLD_H_
-#define _WORLD_H_
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include "input.h"
+#include "platform.h"
 
 struct Triangle {
     glm::vec3 p0;
@@ -23,4 +22,3 @@ public:
     void process_input(const Input& input, float dt);
 
 };
-#endif
