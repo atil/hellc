@@ -3,9 +3,7 @@
 #include <sstream>
 #include <GL/glew.h>
 #include "render.h"
-
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#include "../config.h"
 
 Renderer::Renderer() {
     // TODO: This looks stupid

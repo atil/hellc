@@ -9,9 +9,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#include "../config.h"
 
 constexpr size_t floats_per_vertex = 8;
 constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
@@ -79,7 +77,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     }
 
     // Yes, vert count. We just enumerate the vertices
-    const int vertex_count = face_indices.size() / 3; 
+    const int vertex_count = static_cast<int>(face_indices.size()) / 3; 
     int* index_data = static_cast<int*>(malloc(vertex_count * sizeof(int)));
     for (int i = 0; i < vertex_count; i++) {
         index_data[i] = i;

@@ -1,7 +1,6 @@
 // TODO
-// - triangle is working. try quad and lighting test
+// - problem with reading test_lighting.obj
 // - take a look if there's any c-like thing is remaining
-// - window stuff is used in here, renderer and render unit. find a good solution
 
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
@@ -12,13 +11,11 @@
 #include "input.h"
 #include "assets.h"
 #include "world.h"
+#include "config.h"
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
-
-void process_input(Input* input, GLFWwindow* window) {
-    float prev_mouse_x = input->mouse_x;
-    float prev_mouse_y = input->mouse_y;
+void read_input(Input* input, GLFWwindow* window) {
+	const float prev_mouse_x = input->mouse_x;
+	const float prev_mouse_y = input->mouse_y;
 
     memset(input, 0, sizeof(Input));
 
@@ -60,32 +57,31 @@ int main() {
 
     Renderer renderer;
 
-    const ObjModelData obj_data("assets/triangle.obj");
+    const ObjModelData obj_data("assets/test_lighting.obj");
     renderer.register_obj(obj_data);
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
-    Input* input = static_cast<Input*>(malloc(sizeof(Input)));
-    input->mouse_x = static_cast<float>(mouse_x);
-    input->mouse_y = static_cast<float>(mouse_y);
+    Input input = { 0 };
+    input.mouse_x = static_cast<float>(mouse_x);
+    input.mouse_y = static_cast<float>(mouse_y);
 
-    Player* player = static_cast<Player*>(malloc(sizeof(Player)));
-    init_player(player);
+    Player player;
 
-    float prev_time = glfwGetTime();
+    float prev_time = static_cast<float>(glfwGetTime());
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
             return 0;
         }
-        float now_time = glfwGetTime();
-        float delta_time = now_time - prev_time;
+        const float now_time = static_cast<float>(glfwGetTime());
+        const float delta_time = now_time - prev_time;
         prev_time = now_time;
 
-        process_input(input, window);
-        process_player_input(player, input, delta_time);
+        read_input(&input, window);
+        player.process_input(input, delta_time);
 
-        renderer.render(get_view_matrix(player));
+        renderer.render(player.get_view_matrix());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -94,6 +90,5 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    free(input);
     return 0;
 }

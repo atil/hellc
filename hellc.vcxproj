@@ -199,6 +199,7 @@
     <ClInclude Include="include\GL\wglew.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="src\assets.h" />
+    <ClInclude Include="src\config.h" />
     <ClInclude Include="src\input.h" />
     <ClInclude Include="src\render\render.h" />
     <ClInclude Include="src\world.h" />

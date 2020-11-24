@@ -14,12 +14,13 @@ struct Triangle {
 
 Triangle* create_triangle(float* vertex_data, int vertex_count, int* index_data, int index_data_length);
 
-struct Player {
+class Player {
     glm::vec3 position;
     glm::vec3 forward;
-};
+public:
+    Player();
+	glm::mat4 get_view_matrix() const;
+    void process_input(const Input& input, float dt);
 
-void init_player(Player* player);
-glm::mat4 get_view_matrix(Player* player);
-void process_player_input(Player* player, Input* input, float dt);
+};
 #endif

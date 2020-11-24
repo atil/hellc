@@ -9,46 +9,46 @@ void print_vec3(const glm::vec3& vec) {
     printf("%f %f %f\n", vec.x, vec.y, vec.z);
 }
 
-glm::mat4 get_view_matrix(Player* player) {
-    return glm::lookAt(player->position, player->position + player->forward, up);
+glm::mat4 Player::get_view_matrix() const {
+    return lookAt(this->position, this->position + this->forward, up);
 }
 
-void init_player(Player* player) {
-    player->position = glm::vec3(0, 0, 1);
-    player->forward = glm::vec3(0, 0, -1);
+Player::Player() {
+    this->position = glm::vec3(0, 0, 1);
+    this->forward = glm::vec3(0, 0, -1);
 }
 
-void process_player_input(Player* player, Input* input, float dt) {
-    float move_speed = MOVE_SPEED * dt;
+void Player::process_input(const Input& input, const float dt) {
+	const float move_speed = MOVE_SPEED * dt;
 
-    if (input->forward) {
-        player->position += move_speed * player->forward;
+    if (input.forward) {
+        this->position += move_speed * this->forward;
     }
-    if (input->back) {
-        player->position -= move_speed * player->forward;
-    }
-
-    if (input->left) {
-        player->position -= move_speed * glm::cross(player->forward, up);
-    }
-    if (input->right) {
-        player->position += move_speed * glm::cross(player->forward, up);
+    if (input.back) {
+        this->position -= move_speed * this->forward;
     }
 
-    if (input->up) {
-        player->position += move_speed * up;
+    if (input.left) {
+        this->position -= move_speed * glm::cross(this->forward, up);
     }
-    if (input->down) {
-        player->position -= move_speed * up;
+    if (input.right) {
+        this->position += move_speed * glm::cross(this->forward, up);
     }
 
-    float dx = input->mouse_x - input->prev_mouse_x;
-    float dy = input->mouse_y - input->prev_mouse_y;
+    if (input.up) {
+        this->position += move_speed * up;
+    }
+    if (input.down) {
+        this->position -= move_speed * up;
+    }
 
-    glm::quat horz_rot = glm::angleAxis(glm::radians(-dx * SENSITIVITY * dt), up);
-    player->forward = horz_rot * player->forward;
+	const float dx = input.mouse_x - input.prev_mouse_x;
+	const float dy = input.mouse_y - input.prev_mouse_y;
 
-    glm::vec3 left = glm::cross(player->forward, up);
-    glm::quat vert_rot = glm::angleAxis(glm::radians(-dy * SENSITIVITY * dt), left);
-    player->forward = vert_rot * player->forward;
+    const glm::quat horz_rot = glm::angleAxis(glm::radians(-dx * SENSITIVITY * dt), up);
+    this->forward = horz_rot * this->forward;
+
+	const glm::vec3 left = glm::cross(this->forward, up);
+	const glm::quat vert_rot = glm::angleAxis(glm::radians(-dy * SENSITIVITY * dt), left);
+    this->forward = vert_rot * this->forward;
 }
