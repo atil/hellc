@@ -2,8 +2,7 @@
 #include <string>
 #include <vector>
 
-class ObjFaceData {
-public:
+struct ObjFaceData {
     std::string material_name;
     std::vector<int> indices;
 
@@ -15,8 +14,7 @@ public:
     }
 };
 
-class ObjModelData {
-public:
+struct ObjModelData {
     std::string mtllib_path;
 
     // TODO: These aren't mutable stuff. Consider something else than a vector
@@ -25,5 +23,5 @@ public:
     std::vector<float> normal_data;
     std::vector<ObjFaceData> face_data;
 
-    ObjModelData(const std::string& file_path);
+    explicit ObjModelData(const std::string& file_path);
 };

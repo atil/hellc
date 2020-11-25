@@ -1,11 +1,13 @@
 // TODO
-// - problem with reading test_lighting.obj
-// - take a look if there's any c-like thing is remaining
+// - static collider ctor
+// - gl errors
+// - implement one shot key press (prevkeys stuff)
+// - vim dd is sometimes problematic, find out when
 
 #include "render/render.h"
 #include "assets.h"
-#include "world.h"
 #include "platform.h"
+#include "world/world.h"
 
 int main() {
 
@@ -15,15 +17,18 @@ int main() {
     renderer.register_obj(obj_data);
 
     Player player;
+    Physics physics;
+    physics.register_obj(obj_data);
 
     float prev_time = static_cast<float>(Platform::get_time());
     while (!platform.should_window_close()) {
         const float now_time = static_cast<float>(Platform::get_time());
-        const float delta_time = now_time - prev_time;
+        const float dt = now_time - prev_time;
         prev_time = now_time;
 
-        platform.fill_input();
-        player.process_input(platform.get_input(), delta_time);
+        platform.read_input();
+        player.process_input(platform.get_input(), dt);
+        physics.tick(player.position, dt);
 
         renderer.render(player.get_view_matrix());
 

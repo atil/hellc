@@ -160,13 +160,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\assets.cpp" />
-    <ClCompile Include="src\geom.cpp" />
+    <ClCompile Include="src\world\geom.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\platform.cpp" />
-    <ClCompile Include="src\player.cpp" />
+    <ClCompile Include="src\world\physics.cpp" />
+    <ClCompile Include="src\world\player.cpp" />
     <ClCompile Include="src\render\renderer.cpp" />
     <ClCompile Include="src\render\render_unit.cpp" />
     <ClCompile Include="src\render\shader.cpp" />
+    <ClCompile Include="src\world\static_collider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLFW\glfw3.h" />
@@ -203,7 +205,8 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\render\render.h" />
-    <ClInclude Include="src\world.h" />
+    <ClInclude Include="src\world\geom.h" />
+    <ClInclude Include="src\world\world.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\render\world.glsl" />

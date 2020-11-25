@@ -91,7 +91,6 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     glGenBuffers(1, &(this->vbo));
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
     glBufferData(GL_ARRAY_BUFFER, vertex_data_length * sizeof(float), vertex_data, GL_STATIC_DRAW);
-    check_gl_error("1");
 
     glGenVertexArrays(1, &(this->vao));
     glBindVertexArray(this->vao);
@@ -102,37 +101,37 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    check_gl_error("2");
 
     glGenBuffers(1, &(this->ibo));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data, GL_STATIC_DRAW);
-    check_gl_error("3");
 
-    const std::string image_path = "assets/" + material.diffuse_texture_name;
-    const Image image(image_path);
-    glGenTextures(1, &(this->tex_handle));
-    glBindTexture(GL_TEXTURE_2D, this->tex_handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
-    check_gl_error("texture");
+    this->tex_handle = 0;
+    // TODO: Handling color-only materials
+	// We're temporarily handling it like this, but we should use another shader for this
+    if (!material.diffuse_texture_name.empty()) {
+		const std::string image_path = "assets/" + material.diffuse_texture_name;
+		const Image image(image_path);
+		glGenTextures(1, &(this->tex_handle));
+		glBindTexture(GL_TEXTURE_2D, this->tex_handle);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
+    }
+
     const Shader s("src/render/world.glsl");
     this->shader = s; 
-    check_gl_error("shader init");
 
     const glm::mat4 model = glm::mat4(1);
-    // TODO: This is the same for everything. Coud be somewhere global maybe?
+    // TODO: This is the same for everything. Could be somewhere global maybe?
     const glm::mat4 perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.01f, 100.0f);
 
     this->shader.use();
-    check_gl_error("use");
     this->shader.set_int("u_texture", 0);
     this->shader.set_mat4("u_perspective", perspective);
     this->shader.set_mat4("u_model", model);
-    check_gl_error("first_uniforms");
 
     free(vertex_data);
     free(index_data);
@@ -140,15 +139,12 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
 
 void RenderUnit::render(const glm::mat4& player_view_matrix) const {
     this->shader.use();
-    check_gl_error("render 1");
     glBindVertexArray(this->vao);
-    check_gl_error("render 2");
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
-    check_gl_error("render 3");
-    glActiveTexture(GL_TEXTURE0);
-    check_gl_error("render 4");
-    glBindTexture(GL_TEXTURE_2D, this->tex_handle);
-    check_gl_error("render 5");
+    if (!this->tex_handle == 0) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, this->tex_handle);
+    }
     this->shader.set_mat4("u_view", player_view_matrix);
 
     glDrawElements(GL_TRIANGLES, this->index_data_length, GL_UNSIGNED_INT, nullptr);

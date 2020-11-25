@@ -1,0 +1,42 @@
+#pragma once
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include "../platform.h"
+#include "../assets.h"
+
+struct Triangle {
+    glm::vec3 p0;
+    glm::vec3 p1;
+    glm::vec3 p2;
+};
+
+class Player {
+    glm::vec3 forward {};
+    bool fly_move_enabled = true;
+    void fly_move(const Input& input, float dt);
+    void mouse_look(const Input& input, float dt);
+
+public:
+    glm::vec3 position {};
+
+    Player();
+	glm::mat4 get_view_matrix() const;
+    bool get_fly_move_enabled() const;
+    void process_input(const Input& input, float dt);
+};
+
+class StaticCollider {
+    std::vector<Triangle> triangles;
+public:
+    StaticCollider(const ObjModelData& data);
+};
+
+class Physics {
+    std::vector<StaticCollider> static_colliders;
+
+public:
+    void register_obj(const ObjModelData& obj_data);
+    void tick(glm::vec3& player_pos, float dt) const;
+};

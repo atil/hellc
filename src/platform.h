@@ -9,6 +9,9 @@ struct Input {
     bool right;
     bool up;
     bool down;
+    bool toggle_fly;
+
+	// Mouse
     float mouse_x;
     float mouse_y;
     float prev_mouse_x;
@@ -24,7 +27,7 @@ public:
     ~Platform();
 
     const Input& get_input() const;
-    void fill_input();
+    void read_input();
 	static float get_time();
 	bool should_window_close() const;
 	void end_frame() const;

@@ -30,7 +30,7 @@ const Input& Platform::get_input() const {
     return this->input;
 }
 
-void Platform::fill_input() {
+void Platform::read_input() {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}

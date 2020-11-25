@@ -54,7 +54,7 @@ ObjModelData::ObjModelData(const std::string& file_path) {
             this->position_data.push_back(z);
         } else if (line.find("usemtl") == 0) {
             if (!current_face_data.material_name.empty()) {
-                ObjFaceData prev_face_data(current_face_data);
+	            const ObjFaceData& prev_face_data(current_face_data);
                 this->face_data.push_back(prev_face_data);
             }
             line_stream >> command >> current_face_data.material_name;

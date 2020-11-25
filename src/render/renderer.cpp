@@ -36,21 +36,18 @@ std::vector<Material> load_mtl_file(const std::string& file_path) {
         line_stream >> command >> m.name; // newmtl
         line_stream.clear();
 
-        std::getline(stream, line);
-        line_stream.str(line);
-        line_stream >> command >> m.diffuse_texture_name; // map_Kd
-        line_stream.clear();
+        while (!line.empty()) {
+			std::getline(stream, line);
+			line_stream.str(line);
 
-        std::getline(stream, line);
-        line_stream.str(line);
-        line_stream >> command >> m.diffuse[0] >> m.diffuse[1] >> m.diffuse[2]; // Kd
-        line_stream.clear();
-
-        std::getline(stream, line);
-        line_stream.str(line);
-        line_stream >> command >> m.transparency; // d
-        line_stream.clear();
-
+			if (line.find("map_Kd") == 0) {
+				line_stream >> command >> m.diffuse_texture_name; // map_Kd
+			} else if (line.find("Kd") == 0) {
+				line_stream >> command >> m.diffuse[0] >> m.diffuse[1] >> m.diffuse[2]; // Kd
+			} else if (line.find('d') == 0) {
+				line_stream >> command >> m.transparency; // d
+			}
+        }
         materials.push_back(m);
     }
 
