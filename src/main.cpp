@@ -1,8 +1,7 @@
-// TODO
-// - static collider ctor
-// - gl errors
-// - implement one shot key press (prevkeys stuff)
-// - vim dd is sometimes problematic, find out when
+// TODO gl errors: useProgram returns error (programids are only 3 and 6. is this normal?)
+// TODO implement one shot key press (prevkeys stuff)
+// TODO vim dd is sometimes problematic, find out when
+// TODO BACKLOG Vertex colors
 
 #include "render/render.h"
 #include "assets.h"

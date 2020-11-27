@@ -20,7 +20,6 @@ public:
     void use() const;
 
     explicit Shader(const std::string& file_path);
-    Shader() = default;
     ~Shader();
 };
 
@@ -43,7 +42,7 @@ public:
 
 class RenderUnit {
 
-    Shader shader {};
+    Shader shader ;
     buffer_handle_t vao {};
     buffer_handle_t vbo {};
     buffer_handle_t ibo {};

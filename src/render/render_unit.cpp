@@ -24,7 +24,6 @@ void check_gl_error(const std::string& tag) {
 }
 
 std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int vertex_index, const std::vector<int>& face_data, const ObjModelData& obj_data) {
-
     const int offset_in_face = vertex_index * 3;
     const int pos_index = face_data[face_index + offset_in_face];
     const int uv_index = face_data[face_index + offset_in_face + 1];
@@ -43,7 +42,7 @@ std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int 
     return single_vertex_data;
 }
 
-RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data) {
+RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data) : shader("src/render/world.glsl") {
 
     // TODO @PERF: We have duplicate vertex data in this case
     // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
@@ -121,9 +120,6 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
-    const Shader s("src/render/world.glsl");
-    this->shader = s; 
-
     const glm::mat4 model = glm::mat4(1);
     // TODO: This is the same for everything. Could be somewhere global maybe?
     const glm::mat4 perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.01f, 100.0f);
@@ -141,10 +137,8 @@ void RenderUnit::render(const glm::mat4& player_view_matrix) const {
     this->shader.use();
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
-    if (!this->tex_handle == 0) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, this->tex_handle);
-    }
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->tex_handle);
     this->shader.set_mat4("u_view", player_view_matrix);
 
     glDrawElements(GL_TRIANGLES, this->index_data_length, GL_UNSIGNED_INT, nullptr);

@@ -10,6 +10,8 @@ struct Triangle {
     glm::vec3 p0;
     glm::vec3 p1;
     glm::vec3 p2;
+
+	explicit Triangle(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2): p0(p0), p1(p1), p2(p2) { }
 };
 
 class Player {
@@ -30,7 +32,7 @@ public:
 class StaticCollider {
     std::vector<Triangle> triangles;
 public:
-    StaticCollider(const ObjModelData& data);
+    explicit StaticCollider(const ObjModelData& obj_data);
 };
 
 class Physics {

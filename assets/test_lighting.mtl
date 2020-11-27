@@ -3,10 +3,6 @@ map_Kd Soil1.png
 Kd 1.0 1.0 1.0
 d 1.0
 
-newmtl Material1
-Kd 0.4470588 0.4470588 0.4470588
-d 1
-
 newmtl Wall2
 map_Kd Wall1.png
 Kd 1.0 1.0 1.0
