@@ -1,14 +1,24 @@
-// TODO gl errors: useProgram returns error (programids are only 3 and 6. is this normal?)
-// TODO implement one shot key press (prevkeys stuff)
+// TODO @TASK implement one shot key press (prevkeys stuff)
 // TODO vim dd is sometimes problematic, find out when
-// TODO BACKLOG Vertex colors
+// TODO @BACKLOG Vertex colors
 
 #include "render/render.h"
 #include "assets.h"
 #include "platform.h"
 #include "world/world.h"
 
+
 int main() {
+    const ObjModelData obj_data("assets/test_lighting.obj");
+    Player player;
+    Physics physics;
+    physics.register_obj(obj_data);
+    physics.run_tests();
+    getchar();
+    return 0;
+}
+
+int main_game() {
 
     Platform platform; // Probably should be the first thing
     Renderer renderer;

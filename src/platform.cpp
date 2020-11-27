@@ -7,8 +7,10 @@
 #include "config.h"
 
 Platform::Platform() {
+
+	// TODO @CLEANUP: Feels weird to only define a Platform variable doing this sort of thing
     glfwInit();
-    this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "i don't know what i'm doing", nullptr, nullptr);
+    this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "started working on this early in the mornings", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor

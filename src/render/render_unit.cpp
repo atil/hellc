@@ -1,7 +1,8 @@
-#pragma warning(push, 0)
+#pragma warning(push, 0) // Hide warnings from the external dependency
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #pragma warning(pop)
+
 #include "render.h"
 #include <cstdlib>
 #include <iostream>
@@ -16,8 +17,7 @@ constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
 constexpr size_t bytes_per_face = 3 * bytes_per_vertex;
 
 void check_gl_error(const std::string& tag) {
-    int error = GL_NO_ERROR;
-    error = glGetError();
+    const int error = glGetError();
     if (error != GL_NO_ERROR) {
         std::cout << "Error [" << tag << "] error code: [" << error << "]" << std::endl;
     }
@@ -72,7 +72,6 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
         buffer_offset += floats_per_vertex; // Advance one vertex
         std::array<float, floats_per_vertex> third_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_indices, obj_data);
         memcpy(vertex_data + buffer_offset, third_vertex_data.data(), bytes_per_vertex);
-        vertex_index++;
     }
 
     // Yes, vert count. We just enumerate the vertices
@@ -106,7 +105,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data, GL_STATIC_DRAW);
 
     this->tex_handle = 0;
-    // TODO: Handling color-only materials
+    // TODO @BACKLOG: Handling color-only materials
 	// We're temporarily handling it like this, but we should use another shader for this
     if (!material.diffuse_texture_name.empty()) {
 		const std::string image_path = "assets/" + material.diffuse_texture_name;
@@ -121,7 +120,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     }
 
     const glm::mat4 model = glm::mat4(1);
-    // TODO: This is the same for everything. Could be somewhere global maybe?
+    // TODO @CLEANUP: This is the same for everything. Could be somewhere global maybe?
     const glm::mat4 perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.01f, 100.0f);
 
     this->shader.use();
@@ -164,5 +163,4 @@ Image::Image(const std::string& file_path) {
 Image::~Image() {
     stbi_image_free(this->image_data);
 }
-
 

@@ -6,7 +6,7 @@
 #include "../config.h"
 
 Renderer::Renderer() {
-    // TODO: This looks stupid
+    // TODO @CLEANUP: This looks stupid
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);

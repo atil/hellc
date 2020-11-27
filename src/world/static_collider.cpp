@@ -26,3 +26,7 @@ StaticCollider::StaticCollider(const ObjModelData& obj_data) {
 	}
 }
 
+const std::vector<Triangle>& StaticCollider::get_triangles() const {
+	return this->triangles;
+}
+
