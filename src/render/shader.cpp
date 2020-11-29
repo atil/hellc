@@ -39,21 +39,21 @@ shader_handle_t load_shader(const std::string& header, const std::string& progra
 }
 
 Shader::Shader(const std::string& file_path) {
-	const std::ifstream shader_stream(file_path);
+    const std::ifstream shader_stream(file_path);
     if (!shader_stream.is_open()) {
         std::cout << "Failed to open shader file" << file_path << std::endl;
         this->shader_program_handle = -1;
         return;
     }
 
-	std::stringstream buffer;
-	buffer << shader_stream.rdbuf();
-	const std::string program_string = buffer.str();
+    std::stringstream buffer;
+    buffer << shader_stream.rdbuf();
+    const std::string program_string = buffer.str();
 
-	const shader_handle_t vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
-	const shader_handle_t frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
+    const shader_handle_t vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
+    const shader_handle_t frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
 
-	const shader_handle_t shader_program = glCreateProgram();
+    const shader_handle_t shader_program = glCreateProgram();
     glAttachShader(shader_program, frag_shader);
     glAttachShader(shader_program, vert_shader);
     glLinkProgram(shader_program);
@@ -88,7 +88,7 @@ void Shader::use() const {
 }
 
 uniform_loc_t Shader::get_location(const std::string& property_name) const {
-	const uniform_loc_t loc = glGetUniformLocation(this->shader_program_handle, property_name.c_str());
+    const uniform_loc_t loc = glGetUniformLocation(this->shader_program_handle, property_name.c_str());
     if (loc == -1) {
         std::cout << "Error when getting shader property location: " << property_name << std::endl;
         return -1;
@@ -97,7 +97,7 @@ uniform_loc_t Shader::get_location(const std::string& property_name) const {
 }
 
 void check_uniform_error(const std::string& property_name) {
-	const GLenum error = glGetError();
+    const GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         std::cout << "Error when setting uniform [" << property_name << "] error code: " << error << std::endl;
     }

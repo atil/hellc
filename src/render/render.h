@@ -13,10 +13,10 @@ class Shader {
     shader_handle_t shader_program_handle;
     uniform_loc_t get_location(const std::string& property_name) const;
 public:
-	void set_int(const std::string& property_name, int i) const;
-	void set_vec3(const std::string& property_name, const glm::vec3& v) const;
-	void set_mat4(const std::string& property_name, const glm::mat4& m) const;
-	void set_float(const std::string& property_name, float f) const;
+    void set_int(const std::string& property_name, int i) const;
+    void set_vec3(const std::string& property_name, const glm::vec3& v) const;
+    void set_mat4(const std::string& property_name, const glm::mat4& m) const;
+    void set_float(const std::string& property_name, float f) const;
     void use() const;
 
     explicit Shader(const std::string& file_path);
@@ -42,11 +42,11 @@ public:
 
 class RenderUnit {
 
-    Shader shader ;
-    buffer_handle_t vao {};
-    buffer_handle_t vbo {};
-    buffer_handle_t ibo {};
-    tex_handle_t tex_handle {};
+    Shader shader;
+    buffer_handle_t vao{};
+    buffer_handle_t vbo{};
+    buffer_handle_t ibo{};
+    tex_handle_t tex_handle{};
     int index_data_length;
 
 public:
@@ -62,7 +62,7 @@ class Renderer {
 public:
     Renderer();
     ~Renderer();
-	
+
     void register_obj(const ObjModelData& obj_data);
     void render(const glm::mat4& player_view_matrix);
 };

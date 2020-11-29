@@ -11,7 +11,7 @@ struct Input {
     bool down;
     bool toggle_fly;
 
-	// Mouse
+    // Mouse
     float mouse_x;
     float mouse_y;
     float prev_mouse_x;
@@ -19,17 +19,17 @@ struct Input {
 };
 
 class Platform {
-	GLFWwindow* window;
+    GLFWwindow* window;
     Input input;
 public:
-	
-	Platform();
+
+    Platform();
     ~Platform();
 
     const Input& get_input() const;
     void read_input();
-	static float get_time();
-	bool should_window_close() const;
-	void end_frame() const;
+    static float get_time();
+    bool should_window_close() const;
+    void end_frame() const;
 };
 

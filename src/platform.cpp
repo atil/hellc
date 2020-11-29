@@ -8,7 +8,7 @@
 
 Platform::Platform() {
 
-	// TODO @CLEANUP: Feels weird to only define a Platform variable doing this sort of thing
+    // TODO @CLEANUP: Feels weird to only define a Platform variable doing this sort of thing
     glfwInit();
     this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "started working on this early in the mornings", nullptr, nullptr);
     glfwMakeContextCurrent(window);
@@ -33,17 +33,17 @@ const Input& Platform::get_input() const {
 }
 
 void Platform::read_input() {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, true);
+    }
 
-	const float prev_mouse_x = this->input.mouse_x;
-	const float prev_mouse_y = this->input.mouse_y;
+    const float prev_mouse_x = this->input.mouse_x;
+    const float prev_mouse_y = this->input.mouse_y;
 
-	this->input.forward = glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS;
-	this->input.back = glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS;
+    this->input.forward = glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS;
+    this->input.back = glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS;
     this->input.left = glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS;
-	this->input.right = glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS;
+    this->input.right = glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS;
     this->input.up = glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS;
     this->input.down = glfwGetKey(this->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
 
@@ -64,6 +64,6 @@ bool Platform::should_window_close() const {
 }
 
 void Platform::end_frame() const {
-	glfwSwapBuffers(this->window);
-	glfwPollEvents();
+    glfwSwapBuffers(this->window);
+    glfwPollEvents();
 }

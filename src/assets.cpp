@@ -35,37 +35,42 @@ ObjModelData::ObjModelData(const std::string& file_path) {
 
         if (line.find('#') == 0) {
             continue;
-        } else if (line.find("vt") == 0) {
+        }
+        else if (line.find("vt") == 0) {
             float u, v;
             line_stream >> command >> u >> v;
             this->uv_data.push_back(u);
             this->uv_data.push_back(v);
-        } else if (line.find("vn") == 0) {
+        }
+        else if (line.find("vn") == 0) {
             float nx, ny, nz;
             line_stream >> command >> nx >> ny >> nz;
             this->normal_data.push_back(nx);
             this->normal_data.push_back(ny);
             this->normal_data.push_back(nz);
-        } else if (line.find('v') == 0) {
+        }
+        else if (line.find('v') == 0) {
             float x, y, z;
             line_stream >> command >> x >> y >> z;
             this->position_data.push_back(x);
             this->position_data.push_back(y);
             this->position_data.push_back(z);
-        } else if (line.find("usemtl") == 0) {
+        }
+        else if (line.find("usemtl") == 0) {
             if (!current_face_data.material_name.empty()) {
-	            const ObjFaceData& prev_face_data(current_face_data);
+                const ObjFaceData& prev_face_data(current_face_data);
                 this->face_data.push_back(prev_face_data);
             }
             line_stream >> command >> current_face_data.material_name;
             current_face_data.indices.clear();
-        } else if (line.find('f') == 0) {
+        }
+        else if (line.find('f') == 0) {
             char dummy;
             int face_indices[9];
             sscanf(line.c_str(), "%c %d/%d/%d %d/%d/%d %d/%d/%d", &dummy,
-                    &face_indices[0], &face_indices[1], &face_indices[2],
-                    &face_indices[3], &face_indices[4], &face_indices[5],
-                    &face_indices[6], &face_indices[7], &face_indices[8]);
+                &face_indices[0], &face_indices[1], &face_indices[2],
+                &face_indices[3], &face_indices[4], &face_indices[5],
+                &face_indices[6], &face_indices[7], &face_indices[8]);
 
             for (int i = 0; i < 9; i++) {
                 face_indices[i]--;

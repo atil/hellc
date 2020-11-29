@@ -19,7 +19,7 @@ bool Player::get_fly_move_enabled() const {
 
 void Player::fly_move(const Input& input, float dt) {
 
-	const float fly_move_speed = MOVE_SPEED * dt;
+    const float fly_move_speed = MOVE_SPEED * dt;
 
     if (input.forward) {
         this->position += fly_move_speed * this->forward;
@@ -44,14 +44,14 @@ void Player::fly_move(const Input& input, float dt) {
 }
 
 void Player::mouse_look(const Input& input, float dt) {
-	const float dx = input.mouse_x - input.prev_mouse_x;
-	const float dy = input.mouse_y - input.prev_mouse_y;
+    const float dx = input.mouse_x - input.prev_mouse_x;
+    const float dy = input.mouse_y - input.prev_mouse_y;
 
     const glm::quat horz_rot = glm::angleAxis(glm::radians(-dx * SENSITIVITY * dt), up);
     this->forward = horz_rot * this->forward;
 
-	const glm::vec3 left = glm::cross(this->forward, up);
-	const glm::quat vert_rot = glm::angleAxis(glm::radians(-dy * SENSITIVITY * dt), left);
+    const glm::vec3 left = glm::cross(this->forward, up);
+    const glm::quat vert_rot = glm::angleAxis(glm::radians(-dy * SENSITIVITY * dt), left);
     this->forward = vert_rot * this->forward;
 }
 
@@ -61,10 +61,10 @@ Player::Player() {
 }
 
 void Player::process_input(const Input& input, const float dt) {
-	if (get_fly_move_enabled()) {
+    if (get_fly_move_enabled()) {
         fly_move(input, dt);
         mouse_look(input, dt);
         return;
-	}
+    }
 }
 

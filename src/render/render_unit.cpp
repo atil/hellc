@@ -56,7 +56,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     const int vertex_data_length = face_count * floats_per_vertex * 3;
 
     for (int face_index = 0; face_index < face_count; face_index++) {
-	    const int face_data_index = face_index * 9;
+        const int face_data_index = face_index * 9;
         int vertex_index = 0;
 
         int buffer_offset = face_index * floats_per_vertex * 3 + vertex_index * floats_per_vertex;
@@ -75,7 +75,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     }
 
     // Yes, vert count. We just enumerate the vertices
-    const int vertex_count = static_cast<int>(face_indices.size()) / 3; 
+    const int vertex_count = static_cast<int>(face_indices.size()) / 3;
     int* index_data = static_cast<int*>(malloc(vertex_count * sizeof(int)));
     for (int i = 0; i < vertex_count; i++) {
         index_data[i] = i;
@@ -106,17 +106,17 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
 
     this->tex_handle = 0;
     // TODO @BACKLOG: Handling color-only materials
-	// We're temporarily handling it like this, but we should use another shader for this
+    // We're temporarily handling it like this, but we should use another shader for this
     if (!material.diffuse_texture_name.empty()) {
-		const std::string image_path = "assets/" + material.diffuse_texture_name;
-		const Image image(image_path);
-		glGenTextures(1, &(this->tex_handle));
-		glBindTexture(GL_TEXTURE_2D, this->tex_handle);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
+        const std::string image_path = "assets/" + material.diffuse_texture_name;
+        const Image image(image_path);
+        glGenTextures(1, &(this->tex_handle));
+        glBindTexture(GL_TEXTURE_2D, this->tex_handle);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
     const glm::mat4 model = glm::mat4(1);
@@ -136,8 +136,8 @@ void RenderUnit::render(const glm::mat4& player_view_matrix) const {
     this->shader.use();
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->tex_handle);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, this->tex_handle);
     this->shader.set_mat4("u_view", player_view_matrix);
 
     glDrawElements(GL_TRIANGLES, this->index_data_length, GL_UNSIGNED_INT, nullptr);
