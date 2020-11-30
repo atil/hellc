@@ -1,3 +1,4 @@
+// TODO @TASK @TEST complete geom tests and write resolving tests
 // TODO @TASK implement one shot key press (prevkeys stuff)
 // TODO vim dd is sometimes problematic, find out when
 // TODO @BACKLOG Vertex colors
@@ -13,7 +14,8 @@ int main() {
     Player player;
     Physics physics;
     physics.register_obj(obj_data);
-    physics.run_tests();
+    Physics::run_geom_tests();
+    Physics::run_collision_tests();
     getchar();
     return 0;
 }

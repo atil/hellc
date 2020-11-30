@@ -159,6 +159,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\world\physics_tests.cpp" />
+    <ClCompile Include="src\world\geom_tests.cpp" />
     <ClCompile Include="src\assets.cpp" />
     <ClCompile Include="src\world\geom.cpp" />
     <ClCompile Include="src\main.cpp" />
