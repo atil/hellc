@@ -5,6 +5,8 @@
 #include "render.h"
 #include "../config.h"
 
+// TODO @TASK: Text rendering
+
 Renderer::Renderer() {
     // TODO @CLEANUP: This looks stupid
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);

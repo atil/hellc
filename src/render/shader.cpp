@@ -9,9 +9,7 @@
 #include "render.h"
 
 shader_handle_t load_shader(const std::string& header, const std::string& program_string, int shader_type) {
-    // Concat header with the whole program's string
     const std::string shader_string = header + program_string;
-
     const char* cstr = shader_string.c_str();
 
     const shader_handle_t shader_id = glCreateShader(shader_type);

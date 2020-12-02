@@ -20,6 +20,11 @@ float get_line_segment_plane_distance(const glm::vec3& a, const glm::vec3& b, co
         return 0;
     }
 
+    if (approx(dist_a, dist_b)) {
+        closer_point = (a + b) * 0.5f;
+        return dist_a;
+    }
+
     closer_point = dist_a < dist_b ? a : b;
     return min(dist_a, dist_b);
 }

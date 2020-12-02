@@ -27,7 +27,7 @@ void test_line_segment_parallel_to_triangle() {
     const Triangle t1(glm::vec3(-1, 0, 1), glm::vec3(1, 0, 1), glm::vec3(0, 0, -1));
     const float d1 = get_line_segment_plane_distance(a, b, t1, closer_point);
     assert(approx(d1, 1.0f));
-    assert(closer_point == a || closer_point == b);
+    assert(closer_point == (a + b) * 0.5f);
 }
 
 void test_project_point_to_triangle_plane() {
@@ -74,6 +74,13 @@ void test_closest_point_on_triangle_on() {
     assert(closest_point == glm::vec3(-1, 0, 1));
 }
 
+void test_problem_1() {
+    const glm::vec3 a(0, 2, 1);
+    const Triangle t1 = Triangle(glm::vec3(0, 0, 0), glm::vec3(0, 0, 10), glm::vec3(0, 5, 10));
+    const bool b = is_point_in_triangle(a, t1);
+    assert(!b);
+}
+
 void run_geom_tests_internal() {
     std::cout << "Running geom tests " << std::endl;
 
@@ -86,6 +93,7 @@ void run_geom_tests_internal() {
     test_point_in_triangle_on_counts_as_inside();
     test_closest_point_on_triangle_outside();
     test_closest_point_on_triangle_on();
+    test_problem_1();
 
     std::cout << "Success" << std::endl;
 }

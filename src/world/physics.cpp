@@ -11,7 +11,7 @@ bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangl
     glm::vec3 closer_segment_point; // Could be on the segment itself
     const float dist_to_plane = get_line_segment_plane_distance(player_shape.segment_up, player_shape.segment_bottom, triangle, closer_segment_point);
     if (dist_to_plane > player_shape.radius) {
-        return false; // Far from the segment
+        return false; // Far from the plane
     }
 
     float closer_segment_point_distance, upper_tip_distance, lower_tip_distance;
@@ -42,8 +42,12 @@ bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangl
     // TODO @BUG: This is wrong
     // It's kind of hard to explain in words. Draw this case on paper. The solution should include some trigonometry
     const glm::vec3 closest_point_on_triangle = get_closest_point_on_triangle(closer_segment_point, triangle);
+    const float dist_to_triangle = glm::length(closer_point_projection - closest_point_on_triangle);
+    if (dist_to_triangle > player_shape.radius) {
+        return false;
+    }
     const glm::vec3 penet_dir = glm::normalize(closer_point_projection - closest_point_on_triangle);
-    const float penet_amount = player_shape.radius - glm::length(closer_point_projection - closest_point_on_triangle);
+    const float penet_amount = player_shape.radius - dist_to_triangle;
     penetration = penet_dir * penet_amount;
 
     return true;

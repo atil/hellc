@@ -47,11 +47,11 @@ struct PlayerShape {
     float radius;
 
     explicit PlayerShape(const glm::vec3& player_pos, float height, float r) : radius(r) {
+        this->mid_point = player_pos;
         this->segment_up = player_pos + (unit_y * (height * 0.5f));
         this->segment_bottom = player_pos - (unit_y * (height * 0.5f));
         this->tip_up = this->segment_up + unit_y * this->radius;
         this->tip_bottom = this->segment_bottom - unit_y * this->radius;
-        this->mid_point = (this->segment_bottom + this->segment_up) * 0.5f;
     }
 };
 

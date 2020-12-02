@@ -39,12 +39,25 @@ void Physics::run_collision_tests() {
     has_penet = resolve_penetration(ps, t1, penet);
     assert(!has_penet);
 
-    // Vertical triangle -- intersecting
+    // Vertical triangle -- right on the edge
     ps = PlayerShape(glm::vec3(0, 0, 0), 1, 0.5);
     t1 = Triangle(glm::vec3(0.5, -1, -1), glm::vec3(0.5, -1, 1), glm::vec3(0.5, 1, 0));
     has_penet = resolve_penetration(ps, t1, penet);
     assert(has_penet);
-    assert(penet == glm::vec3(-0.5, 0, 0));
+    assert(penet == glm::vec3(0, 0, 0));
+
+    // Problem #1
+    ps = PlayerShape(glm::vec3(0, 3, 1), 1, 0.5);
+    t1 = Triangle(glm::vec3(0, 0, 0), glm::vec3(0, 0, 10), glm::vec3(0, 5, 10));
+    has_penet = resolve_penetration(ps, t1, penet);
+    assert(!has_penet);
+
+    // Problem #2
+    ps = PlayerShape(glm::vec3(-0.45, 3, 1), 1, 0.5);
+    t1 = Triangle(glm::vec3(0, 5, 0), glm::vec3(0, 0, 0), glm::vec3(0, 5, 10));
+    has_penet = resolve_penetration(ps, t1, penet);
+    assert(has_penet);
+    assert(penet == glm::vec3(-0.0500000119f, 0, 0));
 
     std::cout << "Success" << std::endl;
 }

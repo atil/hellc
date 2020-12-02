@@ -1,17 +1,19 @@
-// TODO @TASK @TEST complete geom tests and write resolving tests
+// TODO @TASK implement actual collision resolving
 // TODO @TASK implement one shot key press (prevkeys stuff)
 // TODO vim dd is sometimes problematic, find out when
 // TODO @BACKLOG Vertex colors
+// TODO @BACKLOG Own vec3 class
 
 #include "render/render.h"
 #include "assets.h"
 #include "platform.h"
 #include "world/world.h"
 
+//#define RUN_TESTS
 
+#ifdef RUN_TESTS
 int main() {
     const ObjModelData obj_data("assets/test_lighting.obj");
-    Player player;
     Physics physics;
     physics.register_obj(obj_data);
     Physics::run_geom_tests();
@@ -20,8 +22,9 @@ int main() {
     return 0;
 }
 
-int main_game() {
+#else
 
+int main() {
     Platform platform; // Probably should be the first thing
     Renderer renderer;
     const ObjModelData obj_data("assets/test_lighting.obj");
@@ -48,3 +51,4 @@ int main_game() {
 
     return 0;
 }
+#endif

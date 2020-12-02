@@ -56,7 +56,7 @@ void Player::mouse_look(const Input& input, float dt) {
 }
 
 Player::Player() {
-    this->position = glm::vec3(0, 0, 1);
+    this->position = glm::vec3(0, 3, 1);
     this->forward = glm::vec3(0, 0, -1);
 }
 
