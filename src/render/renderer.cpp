@@ -78,6 +78,10 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
 void Renderer::render(const glm::mat4& player_view_matrix) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // TODO @TASK: Point shadows
+    // TODO @TASK: Directional shadows
+    // TODO @TASK: Skybox
+
     for (RenderUnit* ru : this->render_units) {
         ru->render(player_view_matrix);
     }

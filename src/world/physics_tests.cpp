@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include "geom.h"
 #include "world.h"
 
 void Physics::run_collision_tests() {
@@ -58,6 +58,14 @@ void Physics::run_collision_tests() {
     has_penet = resolve_penetration(ps, t1, penet);
     assert(has_penet);
     assert(penet == glm::vec3(-0.0500000119f, 0, 0));
+
+
+    // Problem #3
+    ps = PlayerShape(glm::vec3(-3.01, 0.93, -3.12), 1, 0.5);
+    t1 = Triangle(glm::vec3(-10, 0, 0), glm::vec3(0, 0, 0), glm::vec3(-10, 0, -10));
+    has_penet = resolve_penetration(ps, t1, penet);
+    assert(has_penet);
+    assert(approx_vec(penet, glm::vec3(0, 0.07, 0)));
 
     std::cout << "Success" << std::endl;
 }

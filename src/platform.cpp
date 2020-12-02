@@ -33,6 +33,11 @@ const Input& Platform::get_input() const {
 }
 
 void Platform::read_input() {
+
+    // TODO @TASK: One shot key press.
+    // Create KeyCode enum
+    // Keep prev_keys vector3 to figure out which keys are released that frame
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }

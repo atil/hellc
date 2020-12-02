@@ -15,7 +15,11 @@ inline bool in_between(const float arg, const float f_small, const float f_big) 
 }
 
 inline bool approx(const float arg1, const float arg2) {
-    return abs(arg1 - arg2) < 0.0001;
+    return abs(arg1 - arg2) < 0.001;
+}
+
+inline bool approx_vec(const glm::vec3& v1, const glm::vec3& v2) {
+    return approx(v1.x, v2.x) && approx(v1.y, v2.y) && approx(v1.z, v2.z);
 }
 
 float get_line_segment_plane_distance(const glm::vec3& a, const glm::vec3& b, const Triangle& triangle, glm::vec3& closer_point);

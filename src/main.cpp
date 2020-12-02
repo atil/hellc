@@ -1,8 +1,6 @@
-// TODO @TASK implement actual collision resolving
-// TODO @TASK implement one shot key press (prevkeys stuff)
-// TODO vim dd is sometimes problematic, find out when
+// TODO @CLEANUP Rename Physics::tick() and remove dt. It just resolves collisions
+// TODO @TASK Own vec3 class
 // TODO @BACKLOG Vertex colors
-// TODO @BACKLOG Own vec3 class
 
 #include "render/render.h"
 #include "assets.h"

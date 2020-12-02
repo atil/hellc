@@ -44,7 +44,7 @@ std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int 
 
 RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data) : shader("src/render/world.glsl") {
 
-    // TODO @PERF: We have duplicate vertex data in this case
+    // TODO @TASK @PERF: We have duplicate vertex data in this case
     // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
     // If we want to save buffer space, we must get the individual vertices
     // only once and arrange the index buffer accordingly

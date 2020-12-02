@@ -1,7 +1,6 @@
 #include <iostream>
 #include "world.h"
 #include "geom.h"
-#include <cassert>
 
 void Physics::register_obj(const ObjModelData& obj_data) {
     this->static_colliders.emplace_back(obj_data);
@@ -39,21 +38,21 @@ bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangl
         return true;
     }
 
-    // TODO @BUG: This is wrong
-    // It's kind of hard to explain in words. Draw this case on paper. The solution should include some trigonometry
     const glm::vec3 closest_point_on_triangle = get_closest_point_on_triangle(closer_segment_point, triangle);
-    const float dist_to_triangle = glm::length(closer_point_projection - closest_point_on_triangle);
-    if (dist_to_triangle > player_shape.radius) {
+    const float dist_to_projection = glm::length(closer_point_projection - closest_point_on_triangle);
+    if (dist_to_projection > player_shape.radius) {
         return false;
     }
-    const glm::vec3 penet_dir = glm::normalize(closer_point_projection - closest_point_on_triangle);
-    const float penet_amount = player_shape.radius - dist_to_triangle;
-    penetration = penet_dir * penet_amount;
+    // @CLEANUP: This penet_amount is not 100% precise for vertical triangles
+    // The exact solution requires getting the (closest_point_on_segment -> closest_point_on_triangle) vector
+    // and multiplying with sin of the angle which this vector makes with vector3.down
+    // Draw it on something, then it'll be clearer to understand
+    const float penet_amount = player_shape.radius - dist_to_plane;
+    penetration = triangle.normal * penet_amount;
 
     return true;
 }
 
-// TODO @TASK: Use a fixed deltaTime here. Physics should be frame independent
 void Physics::tick(glm::vec3& player_pos, float dt) const {
     constexpr float player_height = 1.0f;
     constexpr float player_radius = 0.5f;
@@ -71,6 +70,6 @@ void Physics::tick(glm::vec3& player_pos, float dt) const {
 }
 
 void Physics::run_geom_tests() {
-    run_geom_tests_internal();
+    run_geom_tests_internal(); // TODO @CLEANUP: This looks weird. Maybe move this to world.h?
 }
 

@@ -18,7 +18,7 @@ struct ObjModelData {
     std::string mtllib_path;
 
     // TODO @CLEANUP: These aren't mutable stuff. Consider using const vectors
-    // TODO @CLEANUP: Keep vec3's instead of floats. This is tricky to index
+    // TODO @TASK @CLEANUP: Keep vec3's instead of floats. This is tricky to index
     std::vector<float> position_data;
     std::vector<float> uv_data;
     std::vector<float> normal_data;
