@@ -5,32 +5,33 @@
 #include <glm/gtx/quaternion.hpp>
 #include "../platform.h"
 #include "../assets.h"
+#include "../vector3.h"
 
 constexpr glm::vec3 unit_y(0, 1, 0);
 
 struct Triangle {
-    glm::vec3 p0;
-    glm::vec3 p1;
-    glm::vec3 p2;
-    glm::vec3 normal {};
+    Vector3 p0;
+    Vector3 p1;
+    Vector3 p2;
+    Vector3 normal {};
     float area;
 
-    explicit Triangle(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2)
-        : p0(p0), p1(p1), p2(p2) {
-        glm::vec3 c = cross(p1 - p0, p2 - p0);
-        normal = normalize(c);
-        area = glm::length(c) * 0.5f;
+    explicit Triangle(const Vector3& p0_, const Vector3& p1_, const Vector3& p2_)
+        : p0(p0_), p1(p1_), p2(p2_) {
+        Vector3 c = Vector3::cross(p1 - p0, p2 - p0);
+        normal = Vector3::normalize(c);
+        area = Vector3::length(c) * 0.5f;
     }
 };
 
 class Player {
-    glm::vec3 forward{};
+    Vector3 forward{};
     bool fly_move_enabled = true;
     void fly_move(const Input& input, float dt);
     void mouse_look(const Input& input, float dt);
 
 public:
-    glm::vec3 position{};
+    Vector3 position{};
 
     Player();
     glm::mat4 get_view_matrix() const;
@@ -39,19 +40,19 @@ public:
 };
 
 struct PlayerShape {
-    glm::vec3 segment_up{};
-    glm::vec3 segment_bottom{};
-    glm::vec3 tip_up{};
-    glm::vec3 tip_bottom{};
-    glm::vec3 mid_point{};
+    Vector3 segment_up{};
+    Vector3 segment_bottom{};
+    Vector3 tip_up{};
+    Vector3 tip_bottom{};
+    Vector3 mid_point{};
     float radius;
 
-    explicit PlayerShape(const glm::vec3& player_pos, float height, float r) : radius(r) {
+    explicit PlayerShape(const Vector3& player_pos, float height, float r) : radius(r) {
         this->mid_point = player_pos;
-        this->segment_up = player_pos + (unit_y * (height * 0.5f));
-        this->segment_bottom = player_pos - (unit_y * (height * 0.5f));
-        this->tip_up = this->segment_up + unit_y * this->radius;
-        this->tip_bottom = this->segment_bottom - unit_y * this->radius;
+        this->segment_up = player_pos + (Vector3::up * (height * 0.5f));
+        this->segment_bottom = player_pos - (Vector3::up * (height * 0.5f));
+        this->tip_up = this->segment_up + Vector3::up * this->radius;
+        this->tip_bottom = this->segment_bottom - Vector3::up * this->radius;
     }
 };
 
@@ -64,10 +65,10 @@ public:
 
 class Physics {
     std::vector<StaticCollider> static_colliders;
-    static bool resolve_penetration(const PlayerShape& player_shape, const Triangle& triangle, glm::vec3& penetration);
+    static bool resolve_penetration(const PlayerShape& player_shape, const Triangle& triangle, Vector3& penetration);
 public:
     void register_obj(const ObjModelData& obj_data);
-    void tick(glm::vec3& player_pos, float dt) const;
+    void tick(Vector3& player_pos, float dt) const;
     static void run_geom_tests();
     static void run_collision_tests();
 };

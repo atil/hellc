@@ -1,5 +1,6 @@
-// TODO @CLEANUP Rename Physics::tick() and remove dt. It just resolves collisions
-// TODO @TASK Own vec3 class
+// TODO @TEST Tests fail after vec3 conversion
+// TODO @CLEANUP Rename Physics::tick() and remove dt. It just resolves collisions:
+// TODO @CLEANUP Get rid of glm
 // TODO @BACKLOG Vertex colors
 
 #include "render/render.h"
@@ -7,7 +8,7 @@
 #include "platform.h"
 #include "world/world.h"
 
-//#define RUN_TESTS
+#define RUN_TESTS
 
 #ifdef RUN_TESTS
 int main() {
