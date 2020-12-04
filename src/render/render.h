@@ -30,8 +30,7 @@ struct Material {
     float transparency;
 };
 
-class Image {
-public:
+struct Image {
     int width;
     int height;
     unsigned char* image_data;
@@ -57,11 +56,10 @@ public:
 };
 
 class Renderer {
-    std::vector<RenderUnit*> render_units;
+    std::vector<RenderUnit> render_units;
 
 public:
     Renderer();
-    ~Renderer();
 
     void register_obj(const ObjModelData& obj_data);
     void render(const glm::mat4& player_view_matrix);

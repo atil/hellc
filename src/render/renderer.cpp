@@ -65,11 +65,15 @@ std::vector<Material> load_mtl_file(const std::string& file_path) {
 void Renderer::register_obj(const ObjModelData& obj_data) {
     std::vector<Material> materials = load_mtl_file(obj_data.mtllib_path);
 
+    // This is important. The vector must not reallocate memory during the loop
+    // Otherwise it calls the destructs (and I think re-constructs) the RenderUnits
+    // which we don't want because we do GL stuff in there
+    this->render_units.reserve(obj_data.face_data.size());
+
     for (const ObjFaceData& obj_face_data : obj_data.face_data) {
-        for (Material& m : materials) {
+        for (const Material& m : materials) {
             if (m.name == obj_face_data.material_name) {
-                RenderUnit* ru = new RenderUnit(m, obj_face_data, obj_data);
-                this->render_units.push_back(ru);
+                this->render_units.emplace_back(m, obj_face_data, obj_data);
             }
         }
     }
@@ -82,13 +86,7 @@ void Renderer::render(const glm::mat4& player_view_matrix) {
     // TODO @TASK: Directional shadows
     // TODO @TASK: Skybox
 
-    for (RenderUnit* ru : this->render_units) {
-        ru->render(player_view_matrix);
-    }
-}
-
-Renderer::~Renderer() {
-    for (RenderUnit* ru : this->render_units) {
-        delete ru;
+    for (const RenderUnit& ru : this->render_units) {
+        ru.render(player_view_matrix);
     }
 }

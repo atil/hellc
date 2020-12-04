@@ -16,10 +16,10 @@ constexpr size_t floats_per_vertex = 8;
 constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
 constexpr size_t bytes_per_face = 3 * bytes_per_vertex;
 
-void check_gl_error(const std::string& tag) {
+void check_gl_error_renderunit(const std::string& tag) {
     const int error = glGetError();
     if (error != GL_NO_ERROR) {
-        std::cout << "Error [" << tag << "] error code: [" << error << "]" << std::endl;
+        std::cout << "Render unit GL error [" << tag << "] error code: [" << error << "]" << std::endl;
     }
 }
 
@@ -43,7 +43,6 @@ std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int 
 }
 
 RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data) : shader("src/render/world.glsl") {
-
     // TODO @TASK @PERF: We have duplicate vertex data in this case
     // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
     // If we want to save buffer space, we must get the individual vertices
@@ -76,6 +75,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
 
     // Yes, vert count. We just enumerate the vertices
     const int vertex_count = static_cast<int>(face_indices.size()) / 3;
+    // TODO @CLEANUP: Convert these to smart pointers
     int* index_data = static_cast<int*>(malloc(vertex_count * sizeof(int)));
     for (int i = 0; i < vertex_count; i++) {
         index_data[i] = i;

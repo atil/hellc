@@ -68,7 +68,7 @@ class Physics {
     static bool resolve_penetration(const PlayerShape& player_shape, const Triangle& triangle, Vector3& penetration);
 public:
     void register_obj(const ObjModelData& obj_data);
-    void tick(Vector3& player_pos, float dt) const;
+    void resolve_collisions(Vector3& player_pos) const;
     static void run_geom_tests();
     static void run_collision_tests();
 };

@@ -85,6 +85,13 @@ void Shader::use() const {
     glUseProgram(this->shader_program_handle);
 }
 
+void check_gl_error_shader(const std::string& tag) {
+    const int error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cout << "Shader GL error [" << tag << "] error code: [" << error << "]" << std::endl;
+    }
+}
+
 uniform_loc_t Shader::get_location(const std::string& property_name) const {
     const uniform_loc_t loc = glGetUniformLocation(this->shader_program_handle, property_name.c_str());
     if (loc == -1) {

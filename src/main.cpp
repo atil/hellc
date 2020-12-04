@@ -1,5 +1,3 @@
-// TODO @TEST Tests fail after vec3 conversion
-// TODO @CLEANUP Rename Physics::tick() and remove dt. It just resolves collisions:
 // TODO @CLEANUP Get rid of glm
 // TODO @BACKLOG Vertex colors
 
@@ -8,7 +6,7 @@
 #include "platform.h"
 #include "world/world.h"
 
-#define RUN_TESTS
+//#define RUN_TESTS
 
 #ifdef RUN_TESTS
 int main() {
@@ -41,7 +39,7 @@ int main() {
 
         platform.read_input();
         player.process_input(platform.get_input(), dt);
-        physics.tick(player.position, dt);
+        physics.resolve_collisions(player.position);
 
         renderer.render(player.get_view_matrix());
 

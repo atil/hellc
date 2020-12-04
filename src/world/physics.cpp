@@ -53,7 +53,7 @@ bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangl
     return true;
 }
 
-void Physics::tick(Vector3& player_pos, float dt) const {
+void Physics::resolve_collisions(Vector3& player_pos) const {
     constexpr float player_height = 1.0f;
     constexpr float player_radius = 0.5f;
     PlayerShape player_shape(player_pos, player_height, player_radius);
