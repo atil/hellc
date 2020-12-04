@@ -33,7 +33,9 @@ float Vector3::dot(const Vector3& v1, const Vector3& v2) {
 }
 
 Vector3 Vector3::cross(const Vector3& v1, const Vector3& v2) {
-    return { v1.y * v2.z - v1.z * v2.y, v1.x * v2.z - v1.z * v2.x, v1.x * v2.y - v1.y * v2.x };
+    return { v1.y * v2.z - v1.z * v2.y,
+        -(v1.x * v2.z - v1.z * v2.x),
+        v1.x * v2.y - v1.y * v2.x };
 }
 
 float Vector3::length(const Vector3& v) {
