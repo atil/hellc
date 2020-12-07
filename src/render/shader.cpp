@@ -5,7 +5,6 @@
 #include <sstream>
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include <glm/glm.hpp>
 #include "render.h"
 
 shader_handle_t load_shader(const std::string& header, const std::string& program_string, int shader_type) {
@@ -113,13 +112,13 @@ void Shader::set_int(const std::string& property_name, int i) const {
     check_uniform_error(property_name);
 }
 
-void Shader::set_vec3(const std::string& property_name, const glm::vec3& v) const {
-    glUniform3fv(get_location(property_name), 1, static_cast<const float*>(&v[0]));
+void Shader::set_vec3(const std::string& property_name, const Vector3& v) const {
+    glUniform3f(get_location(property_name), v.x, v.y, v.z);
     check_uniform_error(property_name);
 }
 
-void Shader::set_mat4(const std::string& property_name, const glm::mat4& m) const {
-    glUniformMatrix4fv(get_location(property_name), 1, GL_FALSE, &m[0][0]);
+void Shader::set_mat4(const std::string& property_name, const Matrix4& m) const {
+    glUniformMatrix4fv(get_location(property_name), 1, GL_FALSE, m.data);
     check_uniform_error(property_name);
 }
 

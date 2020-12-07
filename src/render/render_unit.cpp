@@ -9,8 +9,6 @@
 #include <array>
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include "../config.h"
 
 constexpr size_t floats_per_vertex = 8;
 constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
@@ -119,20 +117,18 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
-    const glm::mat4 model = glm::mat4(1);
-    // TODO @CLEANUP: This is the same for everything. Could be somewhere global maybe?
-    const glm::mat4 perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.01f, 100.0f);
-
     this->shader.use();
     this->shader.set_int("u_texture", 0);
     this->shader.set_mat4("u_perspective", perspective);
-    this->shader.set_mat4("u_model", model);
+    this->shader.set_mat4("u_model", Matrix4::identity());
 
     free(vertex_data);
     free(index_data);
 }
 
-void RenderUnit::render(const glm::mat4& player_view_matrix) const {
+const Matrix4 RenderUnit::perspective = Matrix4::perspective(45.0f, 0.01f, 100.0f);
+
+void RenderUnit::render(const Matrix4& player_view_matrix) const {
     this->shader.use();
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);

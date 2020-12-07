@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "geom.h"
 #include <iostream>
 

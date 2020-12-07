@@ -1,5 +1,5 @@
 #pragma once
-#include <sstream>
+#include <string>
 
 struct Vector3 {
     float x;
@@ -21,20 +21,24 @@ struct Vector3 {
     bool operator==(const Vector3& v) const;
 
     static float dot(const Vector3& v1, const Vector3& v2);
-
     static Vector3 cross(const Vector3& v1, const Vector3& v2);
-
     static float length(const Vector3& v);
-
     static Vector3 normalize(const Vector3& v);
-
     static float distance(const Vector3& v1, const Vector3& v2);
+    static Vector3 rotate_around(const Vector3& v, const Vector3& axis, float angle);
 
     static const Vector3 up;
-
     static const Vector3 zero;
 
     std::string to_string() const;
 };
 
 Vector3 operator*(const float& f, const Vector3& v);
+
+struct Matrix4 {
+    float data[16];
+
+    static Matrix4 look_at(const Vector3& eye, const Vector3& forward, const Vector3& up);
+    static Matrix4 perspective(float fov, float near, float far);
+    static Matrix4 identity();
+};

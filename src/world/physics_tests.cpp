@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include "geom.h"
 #include "world.h"

@@ -1,13 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include "../platform.h"
 #include "../assets.h"
 #include "../vector3.h"
-
-constexpr glm::vec3 unit_y(0, 1, 0);
 
 struct Triangle {
     Vector3 p0;
@@ -18,7 +13,7 @@ struct Triangle {
 
     explicit Triangle(const Vector3& p0_, const Vector3& p1_, const Vector3& p2_)
         : p0(p0_), p1(p1_), p2(p2_) {
-        Vector3 c = Vector3::cross(p1 - p0, p2 - p0);
+        const Vector3 c = Vector3::cross(p1 - p0, p2 - p0);
         normal = Vector3::normalize(c);
         area = Vector3::length(c) * 0.5f;
     }
@@ -34,7 +29,7 @@ public:
     Vector3 position{};
 
     Player();
-    glm::mat4 get_view_matrix() const;
+    Matrix4 get_view_matrix() const;
     bool get_fly_move_enabled() const;
     void process_input(const Input& input, float dt);
 };

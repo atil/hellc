@@ -1,4 +1,6 @@
 #include "vector3.h"
+#include <sstream>
+
 Vector3 Vector3::operator+ (const Vector3& v) const {
     return {x + v.x, y + v.y, z + v.z};
 }
@@ -50,16 +52,80 @@ float Vector3::distance(const Vector3& v1, const Vector3& v2) {
     return length(v1 - v2);
 }
 
+Vector3 Vector3::rotate_around(const Vector3& v, const Vector3& axis, float angle) {
+    constexpr float angle_to_radian = 0.0147533f;
+    const float angle_r = angle * angle_to_radian;
+    const float cos_angle = cos(angle_r);
+    const float sin_angle = sin(angle_r);
+
+    return (v * cos_angle) + (cross(axis, v) * sin_angle) + (axis * dot(axis, v) * (1 - cos_angle));
+}
+
 const Vector3 Vector3::up = Vector3(0, 1, 0);
 
 const Vector3 Vector3::zero = Vector3(0, 0, 0);
 
 std::string Vector3::to_string() const {
-    std::stringstream fmt; // Ideally this function should go into another header
+
+    // Ideally this function should go into another header, like vec_debug or something
+    std::stringstream fmt;
     fmt << x << ", " << y << ", " << z;
     return fmt.str();
 }
 
 Vector3 operator*(const float& f, const Vector3& v) {
     return v * f;
+}
+
+Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
+    Matrix4 m{};
+
+    const Vector3 left = Vector3::cross(forward, up);
+    const Vector3 local_up = Vector3::cross(left, forward);
+
+    m.data[0 * 4 + 0] = left.x;
+    m.data[1 * 4 + 0] = left.y;
+    m.data[2 * 4 + 0] = left.z;
+    m.data[3 * 4 + 0] = -Vector3::dot(left, eye);
+    m.data[0 * 4 + 1] = local_up.x;
+    m.data[1 * 4 + 1] = local_up.y;
+    m.data[2 * 4 + 1] = local_up.z;
+    m.data[3 * 4 + 1] = -Vector3::dot(local_up, eye);
+    m.data[0 * 4 + 2] = -forward.x;
+    m.data[1 * 4 + 2] = -forward.y;
+    m.data[2 * 4 + 2] = -forward.z;
+    m.data[3 * 4 + 2] = Vector3::dot(forward, eye);
+    m.data[0 * 4 + 3] = 0.0f;
+    m.data[1 * 4 + 3] = 0.0f;
+    m.data[2 * 4 + 3] = 0.0f;
+    m.data[3 * 4 + 3] = 1.0f;
+
+    return m;
+}
+
+Matrix4 Matrix4::perspective(float fov, float near, float far) {
+    constexpr float pi = 3.14159f;
+    Matrix4 m{};
+
+    float s = 1.0f / tan(fov * 0.5f * pi / 180.0f);
+    m.data[0 * 4 + 0] = s;
+    m.data[1 * 4 + 1] = s;
+    m.data[2 * 4 + 2] = -far / (far - near);
+    m.data[3 * 4 + 2] = -far * near / (far - near);
+    m.data[2 * 4 + 3] = -1.0f;
+    m.data[3 * 4 + 3] = 0.0f;
+
+    return m;
+}
+
+Matrix4 Matrix4::identity() {
+    Matrix4 m{};
+
+    // TODO @CLEANUP: Can we make this a static const?
+    m.data[0 * 4 + 0] = 1.0f;
+    m.data[1 * 4 + 1] = 1.0f;
+    m.data[2 * 4 + 2] = 1.0f;
+    m.data[3 * 4 + 3] = 1.0f;
+
+    return m;
 }
