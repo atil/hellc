@@ -46,12 +46,12 @@ class RenderUnit {
     buffer_handle_t vbo{};
     buffer_handle_t ibo{};
     tex_handle_t tex_handle{};
-    int index_data_length;
+    size_t index_data_length;
 
     static const Matrix4 perspective;
 
 public:
-    RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data);
+    RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data);
     ~RenderUnit();
 
     void render(const Matrix4& player_view_matrix) const;

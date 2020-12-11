@@ -1,5 +1,18 @@
 #pragma once
+#include <vector>
 struct GLFWwindow;
+
+enum KeyCode : char {
+    Forward,
+    Back,
+    Left,
+    Right,
+    Up,
+    Down,
+    ToggleFly,
+    
+
+};
 
 struct Input {
     bool quit_game;
@@ -20,11 +33,20 @@ struct Input {
 
 class Platform {
     GLFWwindow* window;
-    Input input;
+    Input input{};
+
+    std::vector<KeyCode> prev_keys;
+    std::vector<KeyCode> current_keys;
+
 public:
 
     Platform();
     ~Platform();
+
+    bool get_key(KeyCode key_code) const;
+    bool get_key_down(KeyCode key_code) const;
+    bool get_key_up(KeyCode key_code) const;
+    void get_mouse_delta(float& dx, float& dy) const;
 
     const Input& get_input() const;
     void read_input();

@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS // TODO @CLEANUP What was this for?
 #include "assets.h"
 #include <iostream>
 #include <fstream>
@@ -28,57 +28,54 @@ ObjModelData::ObjModelData(const std::string& file_path) {
     size_t slash_index = file_path.find_last_of('/');
     this->mtllib_path = file_path.substr(0, slash_index) + "/" + mtllib_name;
 
-    ObjFaceData current_face_data;
+    ObjSubmodelData current_submodel;
     while (std::getline(stream, line)) {
         line_stream.clear();
         line_stream.str(line);
 
         if (line.find('#') == 0) {
             continue;
-        }
-        else if (line.find("vt") == 0) {
+        } else if (line.find("vt") == 0) {
             float u, v;
             line_stream >> command >> u >> v;
-            this->uv_data.push_back(u);
-            this->uv_data.push_back(v);
+            this->uv_data.emplace_back(u, v);
         }
         else if (line.find("vn") == 0) {
             float nx, ny, nz;
             line_stream >> command >> nx >> ny >> nz;
-            this->normal_data.push_back(nx);
-            this->normal_data.push_back(ny);
-            this->normal_data.push_back(nz);
+            this->normal_data.emplace_back(nx, ny, nz);
         }
         else if (line.find('v') == 0) {
             float x, y, z;
             line_stream >> command >> x >> y >> z;
-            this->position_data.push_back(x);
-            this->position_data.push_back(y);
-            this->position_data.push_back(z);
+            this->position_data.emplace_back(x, y, z);
         }
         else if (line.find("usemtl") == 0) {
-            if (!current_face_data.material_name.empty()) {
-                const ObjFaceData& prev_face_data(current_face_data);
-                this->face_data.push_back(prev_face_data);
+            if (!current_submodel.material_name.empty()) {
+                const ObjSubmodelData& prev_face_data(current_submodel);
+                this->submodel_data.push_back(prev_face_data);
             }
-            line_stream >> command >> current_face_data.material_name;
-            current_face_data.indices.clear();
+            line_stream >> command >> current_submodel.material_name;
+            current_submodel.faces.clear();
         }
         else if (line.find('f') == 0) {
             char dummy;
-            int face_indices[9];
-            sscanf(line.c_str(), "%c %d/%d/%d %d/%d/%d %d/%d/%d", &dummy,
-                &face_indices[0], &face_indices[1], &face_indices[2],
-                &face_indices[3], &face_indices[4], &face_indices[5],
-                &face_indices[6], &face_indices[7], &face_indices[8]);
+            ObjFaceData face_data;
+            sscanf(line.c_str(), "%c %zu/%zu/%zu %zu/%zu/%zu %zu/%zu/%zu", &dummy,
+                &face_data.position_indices[0], &face_data.uv_indices[0], &face_data.normal_indices[0],
+                &face_data.position_indices[1], &face_data.uv_indices[1], &face_data.normal_indices[1],
+                &face_data.position_indices[2], &face_data.uv_indices[2], &face_data.normal_indices[2]);
 
-            for (int i = 0; i < 9; i++) {
-                face_indices[i]--;
+            for (size_t i = 0; i < 3; i++) {
+                face_data.position_indices[i]--;
+                face_data.uv_indices[i]--;
+                face_data.normal_indices[i]--;
             }
-            current_face_data.indices.insert(current_face_data.indices.end(), face_indices, face_indices + 9);
+
+            current_submodel.faces.push_back(face_data);
         }
     }
 
-    this->face_data.push_back(current_face_data);
+    this->submodel_data.push_back(current_submodel);
 }
 

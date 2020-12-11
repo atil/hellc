@@ -2,27 +2,34 @@
 #include <string>
 #include <vector>
 
+#include "vector3.h"
+
 struct ObjFaceData {
+    size_t position_indices[3];
+    size_t uv_indices[3];
+    size_t normal_indices[3];
+};
+
+struct ObjSubmodelData {
     std::string material_name;
-    std::vector<int> indices;
+    std::vector<ObjFaceData> faces;
 
-    ObjFaceData() = default;
+    ObjSubmodelData() = default;
 
-    ObjFaceData(const ObjFaceData& other) {
+    ObjSubmodelData(const ObjSubmodelData& other) {
         this->material_name = other.material_name;
-        this->indices = other.indices;
+        this->faces = other.faces;
     }
 };
 
 struct ObjModelData {
     std::string mtllib_path;
 
-    // TODO @CLEANUP: These aren't mutable stuff. Consider using const vectors
-    // TODO @TASK @CLEANUP: Keep vec3's instead of floats. This is tricky to index
-    std::vector<float> position_data;
-    std::vector<float> uv_data;
-    std::vector<float> normal_data;
-    std::vector<ObjFaceData> face_data;
+    std::vector<Vector3> position_data;
+    std::vector<Vector2> uv_data;
+    std::vector<Vector3> normal_data;
+
+    std::vector<ObjSubmodelData> submodel_data;
 
     explicit ObjModelData(const std::string& file_path);
 };

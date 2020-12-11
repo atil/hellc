@@ -21,72 +21,40 @@ void check_gl_error_renderunit(const std::string& tag) {
     }
 }
 
-std::array<float, floats_per_vertex> get_single_vertex_data(int face_index, int vertex_index, const std::vector<int>& face_data, const ObjModelData& obj_data) {
-    const int offset_in_face = vertex_index * 3;
-    const int pos_index = face_data[face_index + offset_in_face];
-    const int uv_index = face_data[face_index + offset_in_face + 1];
-    const int norm_index = face_data[face_index + offset_in_face + 2];
+RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data)
+    : shader("src/render/world.glsl")
+{
+    std::vector<float> vertex_data;
+    vertex_data.reserve(obj_submodel_data.faces.size() * 24);
+    for (const ObjFaceData& face_data : obj_submodel_data.faces) {
+        const Vector3& p0 = obj_data.position_data[face_data.position_indices[0]];
+        const Vector2& uv0 = obj_data.uv_data[face_data.uv_indices[0]];
+        const Vector3& n0 = obj_data.normal_data[face_data.normal_indices[0]];
+        vertex_data.insert(vertex_data.end(), { p0.x, p0.y, p0.z, uv0.x, uv0.y, n0.x, n0.y, n0.z });
 
-    std::array<float, floats_per_vertex> single_vertex_data = {};
-    single_vertex_data[0] = obj_data.position_data[pos_index * 3];
-    single_vertex_data[1] = obj_data.position_data[pos_index * 3 + 1];
-    single_vertex_data[2] = obj_data.position_data[pos_index * 3 + 2];
-    single_vertex_data[3] = obj_data.uv_data[uv_index * 2];
-    single_vertex_data[4] = obj_data.uv_data[uv_index * 2 + 1];
-    single_vertex_data[5] = obj_data.normal_data[norm_index * 3];
-    single_vertex_data[6] = obj_data.normal_data[norm_index * 3 + 1];
-    single_vertex_data[7] = obj_data.normal_data[norm_index * 3 + 2];
+        const Vector3& p1 = obj_data.position_data[face_data.position_indices[1]];
+        const Vector2& uv1 = obj_data.uv_data[face_data.uv_indices[1]];
+        const Vector3& n1 = obj_data.normal_data[face_data.normal_indices[1]];
+        vertex_data.insert(vertex_data.end(), { p1.x, p1.y, p1.z, uv1.x, uv1.y, n1.x, n1.y, n1.z });
 
-    return single_vertex_data;
-}
-
-RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_data, const ObjModelData& obj_data) : shader("src/render/world.glsl") {
-    // TODO @TASK @PERF: We have duplicate vertex data in this case
-    // We just copy whatever vertex info (pos/uv/norm) that the face data tells us
-    // If we want to save buffer space, we must get the individual vertices
-    // only once and arrange the index buffer accordingly
-
-    const std::vector<int>& face_indices = obj_face_data.indices;
-
-    const int face_count = static_cast<int>(face_indices.size()) / 9;
-    float* vertex_data = static_cast<float*>(malloc(face_count * bytes_per_face));
-    const int vertex_data_length = face_count * floats_per_vertex * 3;
-
-    for (int face_index = 0; face_index < face_count; face_index++) {
-        const int face_data_index = face_index * 9;
-        int vertex_index = 0;
-
-        int buffer_offset = face_index * floats_per_vertex * 3 + vertex_index * floats_per_vertex;
-        std::array<float, floats_per_vertex> first_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_indices, obj_data);
-        memcpy(vertex_data + buffer_offset, first_vertex_data.data(), bytes_per_vertex);
-        vertex_index++;
-
-        buffer_offset += floats_per_vertex; // Advance one vertex
-        std::array<float, floats_per_vertex> second_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_indices, obj_data);
-        memcpy(vertex_data + buffer_offset, second_vertex_data.data(), bytes_per_vertex);
-        vertex_index++;
-
-        buffer_offset += floats_per_vertex; // Advance one vertex
-        std::array<float, floats_per_vertex> third_vertex_data = get_single_vertex_data(face_data_index, vertex_index, face_indices, obj_data);
-        memcpy(vertex_data + buffer_offset, third_vertex_data.data(), bytes_per_vertex);
+        const Vector3& p2 = obj_data.position_data[face_data.position_indices[2]];
+        const Vector2& uv2 = obj_data.uv_data[face_data.uv_indices[2]];
+        const Vector3& n2 = obj_data.normal_data[face_data.normal_indices[2]];
+        vertex_data.insert(vertex_data.end(), { p2.x, p2.y, p2.z, uv2.x, uv2.y, n2.x, n2.y, n2.z });
     }
 
-    // Yes, vert count. We just enumerate the vertices
-    const int vertex_count = static_cast<int>(face_indices.size()) / 3;
-    // TODO @CLEANUP: Convert these to smart pointers
-    int* index_data = static_cast<int*>(malloc(vertex_count * sizeof(int)));
-    for (int i = 0; i < vertex_count; i++) {
-        index_data[i] = i;
+    std::vector<int> index_data;
+    const size_t vertex_count = obj_submodel_data.faces.size() * 3;
+    index_data.reserve(vertex_count);
+    for (size_t i = 0; i < vertex_count; i++) {
+        index_data.push_back(static_cast<int>(i));
     }
+    
     this->index_data_length = vertex_count;
-
-    // 
-    // Fill GL buffers
-    //
 
     glGenBuffers(1, &(this->vbo));
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertex_data_length * sizeof(float), vertex_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_data.size() * sizeof(float), vertex_data.data(), GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &(this->vao));
     glBindVertexArray(this->vao);
@@ -100,7 +68,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
 
     glGenBuffers(1, &(this->ibo));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data.data(), GL_STATIC_DRAW);
 
     this->tex_handle = 0;
     // TODO @BACKLOG: Handling color-only materials
@@ -121,9 +89,6 @@ RenderUnit::RenderUnit(const Material& material, const ObjFaceData& obj_face_dat
     this->shader.set_int("u_texture", 0);
     this->shader.set_mat4("u_perspective", perspective);
     this->shader.set_mat4("u_model", Matrix4::identity());
-
-    free(vertex_data);
-    free(index_data);
 }
 
 const Matrix4 RenderUnit::perspective = Matrix4::perspective(45.0f, 0.01f, 100.0f);
@@ -136,7 +101,7 @@ void RenderUnit::render(const Matrix4& player_view_matrix) const {
     glBindTexture(GL_TEXTURE_2D, this->tex_handle);
     this->shader.set_mat4("u_view", player_view_matrix);
 
-    glDrawElements(GL_TRIANGLES, this->index_data_length, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(this->index_data_length), GL_UNSIGNED_INT, nullptr);
 }
 
 RenderUnit::~RenderUnit() {

@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#define GLEW_STATIC
 #include <GL/glew.h>
 #include "render.h"
 #include "../config.h"
@@ -8,6 +9,7 @@
 // TODO @TASK: Text rendering
 
 Renderer::Renderer() {
+    glewInit(); // Needs to be after the glfw context creation
     // TODO @CLEANUP: This looks stupid
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glEnable(GL_DEPTH_TEST);
@@ -66,11 +68,11 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
     std::vector<Material> materials = load_mtl_file(obj_data.mtllib_path);
 
     // This is important. The vector must not reallocate memory during the loop
-    // Otherwise it calls the destructs (and I think re-constructs) the RenderUnits
+    // Otherwise it calls the dtors (and I think ctors afterwards) of the RenderUnits
     // which we don't want because we do GL stuff in there
-    this->render_units.reserve(obj_data.face_data.size());
+    this->render_units.reserve(obj_data.submodel_data.size());
 
-    for (const ObjFaceData& obj_face_data : obj_data.face_data) {
+    for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : materials) {
             if (m.name == obj_face_data.material_name) {
                 this->render_units.emplace_back(m, obj_face_data, obj_data);

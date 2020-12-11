@@ -42,3 +42,10 @@ struct Matrix4 {
     static Matrix4 perspective(float fov, float near, float far);
     static Matrix4 identity();
 };
+
+struct Vector2 {
+    float x;
+    float y;
+
+    Vector2(float x_, float y_) : x(x_), y(y_) { }
+};

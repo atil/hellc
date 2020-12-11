@@ -1,4 +1,3 @@
-// TODO @CLEANUP Get rid of glm
 // TODO @BACKLOG Vertex colors
 
 #include "render/render.h"

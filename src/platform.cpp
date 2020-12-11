@@ -2,8 +2,6 @@
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
 #include <GLFW/glfw3.h>
-#define GLEW_STATIC
-#include <GL/glew.h>
 #include "config.h"
 
 Platform::Platform() {
@@ -12,7 +10,6 @@ Platform::Platform() {
     glfwInit();
     this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "started working on this early in the mornings", nullptr, nullptr);
     glfwMakeContextCurrent(window);
-    glewInit(); // Needs to be after the context creation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
     double mouse_x, mouse_y;
@@ -36,7 +33,7 @@ void Platform::read_input() {
 
     // TODO @TASK: One shot key press.
     // Create KeyCode enum
-    // Keep prev_keys vector3 to figure out which keys are released that frame
+    // remove input struct and fill in the vectors
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
