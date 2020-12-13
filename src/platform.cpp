@@ -9,7 +9,7 @@ Platform::Platform() {
 
     // TODO @CLEANUP: Feels weird to only define a Platform variable doing this sort of thing
     glfwInit();
-    this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "started working on this early in the mornings", nullptr, nullptr);
+    this->window = glfwCreateWindow(window_width, window_height, "started working on this early in the mornings", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 

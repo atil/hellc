@@ -4,11 +4,11 @@
 #pragma warning(pop)
 
 #include "render.h"
-#include <cstdlib>
 #include <iostream>
-#include <array>
+#include "../config.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
+
 
 constexpr size_t floats_per_vertex = 8;
 constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
@@ -85,13 +85,17 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
+    auto pers = RenderUnit::perspective;
+    pers = Matrix4::perspective2(45.0f, 0.01f, 100.0f);
+
     this->shader.use();
     this->shader.set_int("u_texture", 0);
-    this->shader.set_mat4("u_perspective", perspective);
+    this->shader.set_mat4("u_perspective", pers);
     this->shader.set_mat4("u_model", Matrix4::identity());
 }
 
-const Matrix4 RenderUnit::perspective = Matrix4::perspective(45.0f, 0.01f, 100.0f);
+constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
+const Matrix4 RenderUnit::perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100.0f);
 
 void RenderUnit::render(const Matrix4& player_view_matrix) const {
     this->shader.use();

@@ -42,8 +42,6 @@ void World::mouse_look(const Platform& platform, float dt) {
     const float dx = std::get<0>(mouse_delta);
     const float dy = std::get<1>(mouse_delta);
 
-    std::cout << dx << " ==== " << dy << std::endl;
-
     this->player_forward = Vector3::rotate_around(this->player_forward, Vector3::up, -dx * sensitivity * dt);
     const Vector3 left = Vector3::cross(this->player_forward, Vector3::up);
     this->player_forward = Vector3::rotate_around(this->player_forward, left, -dy * sensitivity * dt);

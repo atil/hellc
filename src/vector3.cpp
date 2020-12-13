@@ -88,7 +88,7 @@ Vector3 operator*(const float& f, const Vector3& v) {
 }
 
 Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
-    Matrix4 m{};
+    Matrix4 m{0};
 
     const Vector3 left = Vector3::cross(forward, up);
     const Vector3 local_up = Vector3::cross(left, forward);
@@ -113,7 +113,7 @@ Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vecto
     return m;
 }
 
-Matrix4 Matrix4::perspective(float fov, float near, float far) {
+Matrix4 Matrix4::perspective2(float fov, float near, float far) {
     constexpr float pi = 3.14159f;
     Matrix4 m{};
 
@@ -128,8 +128,26 @@ Matrix4 Matrix4::perspective(float fov, float near, float far) {
     return m;
 }
 
+Matrix4 Matrix4::perspective(float fov, float aspect_ratio, float near, float far) {
+    Matrix4 m{ 0 };
+    constexpr float deg_to_rad = 0.0174533f;
+    fov *= deg_to_rad;
+
+    const float tan_half_fov = tan(fov * 0.5f);
+
+    m.data[0 * 4 + 0] = 1.0f / (aspect_ratio * tan_half_fov);
+    m.data[1 * 4 + 1] = 1.0f / tan_half_fov;
+    m.data[2 * 4 + 2] = -(far + near) / (far - near);
+    m.data[2 * 4 + 3] = -1.0f;
+    m.data[3 * 4 + 2] = -(2.0f * far * near) / (far - near);
+    m.data[3 * 4 + 3] = 0.0f;
+
+
+    return m;
+}
+
 Matrix4 Matrix4::identity() {
-    Matrix4 m{};
+    Matrix4 m{0};
 
     // TODO @CLEANUP: Can we make this a static const?
     m.data[0 * 4 + 0] = 1.0f;

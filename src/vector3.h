@@ -41,7 +41,8 @@ struct Matrix4 {
     float data[16];
 
     static Matrix4 look_at(const Vector3& eye, const Vector3& forward, const Vector3& up);
-    static Matrix4 perspective(float fov, float near, float far);
+    static Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
+    static Matrix4 perspective2(float fov, float near, float far);
     static Matrix4 identity();
 };
 

@@ -11,7 +11,7 @@
 Renderer::Renderer() {
     glewInit(); // Needs to be after the glfw context creation
     // TODO @CLEANUP: This looks stupid
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glViewport(0, 0, window_width, window_height);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 }
