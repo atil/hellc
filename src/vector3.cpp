@@ -1,6 +1,8 @@
 #include "vector3.h"
 #include <sstream>
 
+constexpr float deg_to_rad = 0.0174533f;
+
 Vector3 Vector3::operator+ (const Vector3& v) const {
     return {x + v.x, y + v.y, z + v.z};
 }
@@ -63,11 +65,11 @@ float Vector3::distance(const Vector3& v1, const Vector3& v2) {
 }
 
 Vector3 Vector3::rotate_around(const Vector3& v, const Vector3& axis, float angle) {
-    constexpr float angle_to_radian = 0.0147533f;
-    const float angle_r = angle * angle_to_radian;
+    const float angle_r = angle * deg_to_rad;
     const float cos_angle = cos(angle_r);
     const float sin_angle = sin(angle_r);
 
+    // Rodrigues rotation formula
     return (v * cos_angle) + (cross(axis, v) * sin_angle) + (axis * dot(axis, v) * (1 - cos_angle));
 }
 
@@ -77,7 +79,7 @@ const Vector3 Vector3::zero = Vector3(0, 0, 0);
 
 std::string Vector3::to_string() const {
 
-    // Ideally this function should go into another header, like vec_debug or something
+    // @CLEANUP: Ideally this function should go into another header, like vec_debug or something
     std::stringstream fmt;
     fmt << x << ", " << y << ", " << z;
     return fmt.str();
@@ -90,7 +92,7 @@ Vector3 operator*(const float& f, const Vector3& v) {
 Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
     Matrix4 m{0};
 
-    const Vector3 left = Vector3::cross(forward, up);
+    const Vector3 left = Vector3::normalize(Vector3::cross(forward, up));
     const Vector3 local_up = Vector3::cross(left, forward);
 
     m.data[0 * 4 + 0] = left.x;
@@ -113,24 +115,8 @@ Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vecto
     return m;
 }
 
-Matrix4 Matrix4::perspective2(float fov, float near, float far) {
-    constexpr float pi = 3.14159f;
-    Matrix4 m{};
-
-    float s = 1.0f / tan(fov * 0.5f * pi / 180.0f);
-    m.data[0 * 4 + 0] = s;
-    m.data[1 * 4 + 1] = s;
-    m.data[2 * 4 + 2] = -far / (far - near);
-    m.data[3 * 4 + 2] = -far * near / (far - near);
-    m.data[2 * 4 + 3] = -1.0f;
-    m.data[3 * 4 + 3] = 0.0f;
-
-    return m;
-}
-
 Matrix4 Matrix4::perspective(float fov, float aspect_ratio, float near, float far) {
     Matrix4 m{ 0 };
-    constexpr float deg_to_rad = 0.0174533f;
     fov *= deg_to_rad;
 
     const float tan_half_fov = tan(fov * 0.5f);

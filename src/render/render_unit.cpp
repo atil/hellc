@@ -85,12 +85,10 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
-    auto pers = RenderUnit::perspective;
-    pers = Matrix4::perspective2(45.0f, 0.01f, 100.0f);
 
     this->shader.use();
     this->shader.set_int("u_texture", 0);
-    this->shader.set_mat4("u_perspective", pers);
+    this->shader.set_mat4("u_perspective", perspective);
     this->shader.set_mat4("u_model", Matrix4::identity());
 }
 

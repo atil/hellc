@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "world.h" 
 #include "geom.h"
 #include <tuple>
@@ -43,8 +41,9 @@ void World::mouse_look(const Platform& platform, float dt) {
     const float dy = std::get<1>(mouse_delta);
 
     this->player_forward = Vector3::rotate_around(this->player_forward, Vector3::up, -dx * sensitivity * dt);
-    const Vector3 left = Vector3::cross(this->player_forward, Vector3::up);
-    this->player_forward = Vector3::rotate_around(this->player_forward, left, -dy * sensitivity * dt);
+    const Vector3 left = Vector3::normalize(Vector3::cross(Vector3::up, this->player_forward));
+    this->player_forward = Vector3::rotate_around(this->player_forward, left, dy * sensitivity * dt);
+
 }
 
 void accelerate(Vector3& player_velocity, const Vector3& wish_dir, float accel_coeff, float dt) {
