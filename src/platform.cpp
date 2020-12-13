@@ -1,6 +1,7 @@
 #include "platform.h"
 #define GLFW_DLL // Dynamically linking glfw
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
+#include <tuple>
 #include <GLFW/glfw3.h>
 #include "config.h"
 
@@ -14,10 +15,8 @@ Platform::Platform() {
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
-    this->input = { 0 };
-    input.mouse_x = static_cast<float>(mouse_x);
-    input.mouse_y = static_cast<float>(mouse_y);
-
+    this->prev_mouse_x = static_cast<float>(mouse_x);
+    this->prev_mouse_y = static_cast<float>(mouse_y);
 }
 
 Platform::~Platform() {
@@ -25,36 +24,68 @@ Platform::~Platform() {
     glfwTerminate();
 }
 
-const Input& Platform::get_input() const {
-    return this->input;
+bool contains_key(const std::vector<KeyCode>& key_vec, KeyCode key_code) {
+    for (auto it = key_vec.begin(); it != key_vec.end(); ++it) {
+        if (*it == key_code) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Platform::get_key(KeyCode key_code) const {
+    return contains_key(this->current_keys, key_code);
+}
+
+bool Platform::get_key_down(KeyCode key_code) const {
+    return contains_key(this->current_keys, key_code)
+        && !contains_key(this->prev_keys, key_code);
+}
+
+bool Platform::get_key_up(KeyCode key_code) const {
+    return !contains_key(this->current_keys, key_code)
+        && contains_key(this->prev_keys, key_code);
+}
+
+std::tuple<float, float> Platform::get_mouse_delta() const {
+    return std::make_tuple(this->mouse_dx, this->mouse_dy);
 }
 
 void Platform::read_input() {
-
-    // TODO @TASK: One shot key press.
-    // Create KeyCode enum
-    // remove input struct and fill in the vectors
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 
-    const float prev_mouse_x = this->input.mouse_x;
-    const float prev_mouse_y = this->input.mouse_y;
+    this->prev_keys = this->current_keys;
+    this->current_keys.clear();
 
-    this->input.forward = glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS;
-    this->input.back = glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS;
-    this->input.left = glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS;
-    this->input.right = glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS;
-    this->input.up = glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS;
-    this->input.down = glfwGetKey(this->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+    if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Forward);
+    }
+    
+    if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Left);
+    }
+    if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Back);
+    }
+    if (glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Right);
+    }
+    if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Up);
+    }
+    if (glfwGetKey(this->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::Down);
+    }
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(this->window, &mouse_x, &mouse_y);
-    this->input.mouse_x = static_cast<float>(mouse_x);
-    this->input.mouse_y = static_cast<float>(mouse_y);
-    this->input.prev_mouse_x = static_cast<float>(prev_mouse_x);
-    this->input.prev_mouse_y = static_cast<float>(prev_mouse_y);
+    this->mouse_dx = static_cast<float>(mouse_x) - this->prev_mouse_x;
+    this->mouse_dy = static_cast<float>(mouse_y) - this->prev_mouse_y;
+    this->prev_mouse_x = static_cast<float>(mouse_x);
+    this->prev_mouse_y = static_cast<float>(mouse_y);
 }
 
 float Platform::get_time() {

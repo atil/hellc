@@ -1,4 +1,5 @@
 #include "world.h" 
+#include <tuple>
 
 #define MOVE_SPEED 3.5f
 #define SENSITIVITY 1.f
@@ -11,35 +12,37 @@ bool Player::get_fly_move_enabled() const {
     return this->fly_move_enabled;
 }
 
-void Player::fly_move(const Input& input, float dt) {
+void Player::fly_move(const Platform& platform, float dt) {
 
     const float fly_move_speed = MOVE_SPEED * dt;
 
-    if (input.forward) {
+    if (platform.get_key(KeyCode::Forward)) {
         this->position += fly_move_speed * this->forward;
     }
-    if (input.back) {
+    if (platform.get_key(KeyCode::Back)) {
         this->position -= fly_move_speed * this->forward;
     }
 
-    if (input.left) {
+    if (platform.get_key(KeyCode::Left)) {
         this->position -= fly_move_speed * Vector3::cross(this->forward, Vector3::up);
     }
-    if (input.right) {
+    if (platform.get_key(KeyCode::Right)) {
         this->position += fly_move_speed * Vector3::cross(this->forward, Vector3::up);
     }
 
-    if (input.up) {
+    if (platform.get_key(KeyCode::Up)) {
         this->position += fly_move_speed * Vector3::up;
     }
-    if (input.down) {
+    if (platform.get_key(KeyCode::Down)) {
         this->position -= fly_move_speed * Vector3::up;
     }
 }
 
-void Player::mouse_look(const Input& input, float dt) {
-    const float dx = input.mouse_x - input.prev_mouse_x;
-    const float dy = input.mouse_y - input.prev_mouse_y;
+void Player::mouse_look(const Platform& platform, float dt) {
+
+    std::tuple<float, float> mouse_delta = platform.get_mouse_delta();
+    const float dx = std::get<0>(mouse_delta);
+    const float dy = std::get<1>(mouse_delta);
 
     this->forward = Vector3::rotate_around(this->forward, Vector3::up, -dx * SENSITIVITY * dt);
     const Vector3 left = Vector3::cross(this->forward, Vector3::up);
@@ -51,10 +54,10 @@ Player::Player() {
     this->forward = Vector3(0, 0, -1);
 }
 
-void Player::process_input(const Input& input, const float dt) {
+void Player::process_input(const Platform& platform, const float dt) {
     if (get_fly_move_enabled()) {
-        fly_move(input, dt);
-        mouse_look(input, dt);
+        fly_move(platform, dt);
+        mouse_look(platform, dt);
         return;
     }
 

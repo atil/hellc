@@ -22,8 +22,8 @@ struct Triangle {
 class Player {
     Vector3 forward{};
     bool fly_move_enabled = true;
-    void fly_move(const Input& input, float dt);
-    void mouse_look(const Input& input, float dt);
+    void fly_move(const Platform& platform, float dt);
+    void mouse_look(const Platform& platform, float dt);
 
 public:
     Vector3 position{};
@@ -31,7 +31,7 @@ public:
     Player();
     Matrix4 get_view_matrix() const;
     bool get_fly_move_enabled() const;
-    void process_input(const Input& input, float dt);
+    void process_input(const Platform& platform, float dt);
 };
 
 struct PlayerShape {

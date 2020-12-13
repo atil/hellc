@@ -37,7 +37,7 @@ int main() {
         prev_time = now_time;
 
         platform.read_input();
-        player.process_input(platform.get_input(), dt);
+        player.process_input(platform, dt);
         physics.resolve_collisions(player.position);
 
         renderer.render(player.get_view_matrix());
