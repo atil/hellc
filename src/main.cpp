@@ -10,10 +10,10 @@
 #ifdef RUN_TESTS
 int main() {
     const ObjModelData obj_data("assets/test_lighting.obj");
-    Physics physics;
-    physics.register_obj(obj_data);
-    Physics::run_geom_tests();
-    Physics::run_collision_tests();
+    World world;
+    world.register_static_collider(obj_data);
+    World::run_geom_tests();
+    World::run_collision_tests();
     getchar();
     return 0;
 }
@@ -26,9 +26,8 @@ int main() {
     const ObjModelData obj_data("assets/test_lighting.obj");
     renderer.register_obj(obj_data);
 
-    Player player;
-    Physics physics;
-    physics.register_obj(obj_data);
+    World world;
+    world.register_static_collider(obj_data);
 
     float prev_time = static_cast<float>(Platform::get_time());
     while (!platform.should_window_close()) {
@@ -37,10 +36,8 @@ int main() {
         prev_time = now_time;
 
         platform.read_input();
-        player.process_input(platform, dt);
-        physics.resolve_collisions(player.position);
-
-        renderer.render(player.get_view_matrix());
+        world.tick(platform, dt);
+        renderer.render(world.get_view_matrix());
 
         platform.end_frame();
     }

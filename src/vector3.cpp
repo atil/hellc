@@ -9,6 +9,10 @@ Vector3 Vector3::operator- (const Vector3& v) const {
     return {x - v.x, y - v.y, z - v.z};
 }
 
+Vector3 Vector3::operator-() const {
+    return { -x, -y, -z };
+}
+
 void Vector3::operator+= (const Vector3& v) {
     x += v.x;
     y += v.y;
@@ -23,6 +27,12 @@ void Vector3::operator-= (const Vector3& v) {
 
 Vector3 Vector3::operator* (float f) const {
     return { x * f, y * f, z * f };
+}
+
+void Vector3::operator*=(float f) {
+    x *= f;
+    y *= f;
+    z *= f;
 }
 
 bool Vector3::operator== (const Vector3& v) const {

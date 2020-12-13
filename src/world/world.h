@@ -19,19 +19,15 @@ struct Triangle {
     }
 };
 
-class Player {
-    Vector3 forward{};
-    bool fly_move_enabled = true;
-    void fly_move(const Platform& platform, float dt);
-    void mouse_look(const Platform& platform, float dt);
+struct Ray {
+    Vector3 origin;
+    Vector3 direction;
 
-public:
-    Vector3 position{};
+    explicit Ray(Vector3 o, Vector3 d) : origin(o), direction(d) { }
 
-    Player();
-    Matrix4 get_view_matrix() const;
-    bool get_fly_move_enabled() const;
-    void process_input(const Platform& platform, float dt);
+    Vector3 at(float t) const {
+        return origin + t * direction;
+    }
 };
 
 struct PlayerShape {
@@ -49,6 +45,14 @@ struct PlayerShape {
         this->tip_up = this->segment_up + Vector3::up * this->radius;
         this->tip_bottom = this->segment_bottom - Vector3::up * this->radius;
     }
+
+    void displace(const Vector3& displacement) {
+        this->mid_point += displacement;
+        this->segment_up += displacement;
+        this->segment_bottom += displacement;
+        this->tip_up += displacement;
+        this->tip_bottom += displacement;
+    }
 };
 
 class StaticCollider {
@@ -58,12 +62,33 @@ public:
     const std::vector<Triangle>& get_triangles() const;
 };
 
-class Physics {
-    std::vector<StaticCollider> static_colliders;
+struct Physics {
+    static Vector3 compute_penetrations(const Vector3& player_pos, const std::vector<StaticCollider>& static_colliders);
+    static bool is_grounded(const Vector3& player_pos, const Vector3& player_move_dir_horz, const std::vector<StaticCollider>& static_colliders, Vector3
+                            & ground_normal);
+    static bool raycast(const Ray& ray, float max_dist, const std::vector<StaticCollider>& static_colliders, Ray& out);
+
     static bool resolve_penetration(const PlayerShape& player_shape, const Triangle& triangle, Vector3& penetration);
-public:
-    void register_obj(const ObjModelData& obj_data);
-    void resolve_collisions(Vector3& player_pos) const;
     static void run_geom_tests();
     static void run_collision_tests();
+};
+
+class World {
+
+    std::vector<StaticCollider> static_colliders;
+
+    // Player
+    Vector3 player_position{ 0, 3, 0 };
+    Vector3 player_forward{ 0, 0, -1 };
+    Vector3 player_velocity{ 0, 0, 0 };
+    bool fly_move_enabled = true;
+    void fly_move(const Platform& platform, float dt);
+    void mouse_look(const Platform& platform, float dt);
+
+public:
+
+    void register_static_collider(const ObjModelData& obj_data);
+    void tick(const Platform& platform, float dt);
+    Matrix4 get_view_matrix() const;
+
 };

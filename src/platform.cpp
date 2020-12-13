@@ -13,10 +13,14 @@ Platform::Platform() {
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
+    glfwSetWindowPos(window, 1920 / 2, 1080 / 2);
+
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
     this->prev_mouse_x = static_cast<float>(mouse_x);
     this->prev_mouse_y = static_cast<float>(mouse_y);
+    this->mouse_dx = 0;
+    this->mouse_dy = 0;
 }
 
 Platform::~Platform() {

@@ -2,7 +2,10 @@
 #include "world.h"
 #include "geom.h"
 
-void Physics::register_obj(const ObjModelData& obj_data) {
+constexpr float player_height = 1.0f;
+constexpr float player_radius = 0.5f;
+
+void World::register_static_collider(const ObjModelData& obj_data) {
     this->static_colliders.emplace_back(obj_data);
 }
 
@@ -53,21 +56,72 @@ bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangl
     return true;
 }
 
-void Physics::resolve_collisions(Vector3& player_pos) const {
-    constexpr float player_height = 1.0f;
-    constexpr float player_radius = 0.5f;
+Vector3 Physics::compute_penetrations(const Vector3& player_pos, const std::vector<StaticCollider>& static_colliders) {
     PlayerShape player_shape(player_pos, player_height, player_radius);
-
-    for (const StaticCollider& static_collider : this->static_colliders) {
+    Vector3 total_displacement;
+    for (const StaticCollider& static_collider : static_colliders) {
         for (const Triangle& triangle : static_collider.get_triangles()) {
             Vector3 penet;
             if (resolve_penetration(player_shape, triangle, penet)) {
-                player_pos += penet;
-                player_shape = PlayerShape(player_pos, player_height, player_radius);
+                total_displacement += penet;
+                player_shape.displace(penet);
             }
         }
     }
+
+    return total_displacement;
 }
+
+bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_dir_horz, const std::vector<StaticCollider>& static_colliders, Vector3& ground_normal) {
+
+    const PlayerShape player_shape(player_pos, player_height, player_radius);
+    const Ray mid(player_shape.tip_bottom, -Vector3::up);
+    // TODO @TASK: Add more ray slots and ghost jump slot here
+
+    std::vector<Ray> grounded_check_rays{ mid };
+
+    Ray hit(Vector3::zero, Vector3::zero);
+    for (const Ray& ray : grounded_check_rays) {
+        if (raycast(ray, 0.01f, static_colliders, hit)) {
+
+            ground_normal = hit.direction;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Physics::raycast(const Ray& ray, float max_dist, const std::vector<StaticCollider>& static_colliders, Ray& out) {
+
+    for (const StaticCollider& collider : static_colliders) {
+        for (const Triangle& triangle : collider.get_triangles()) {
+
+            // Ray-triangle check
+            const float dir_dot_normal = Vector3::dot(ray.direction, triangle.normal);
+            if (approx(dir_dot_normal, 0)) {
+                continue; // Parallel
+            }
+
+            const float t = Vector3::dot(triangle.p0 - ray.origin, triangle.normal) / dir_dot_normal;
+            if (t < 0.0f) {
+                continue; // Behind the ray
+            }
+
+            if (t > max_dist) {
+                continue; // Triangle-plane is too far away
+            }
+            
+            Vector3 hit_on_plane = ray.at(t);
+            if (is_point_in_triangle(hit_on_plane, triangle)) {
+                out = Ray(hit_on_plane, triangle.normal);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 
 void Physics::run_geom_tests() {
     run_geom_tests_internal(); // TODO @CLEANUP: This looks weird. Maybe move this to world.h?

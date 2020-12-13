@@ -2,6 +2,16 @@
 #include <iostream>
 #include <cstdlib>
 
+Vector3 project_vector_on_plane(const Vector3& v, const Vector3& n) {
+    const float sqr_mag = Vector3::dot(n, n);
+    if (approx(sqr_mag, 0) || std::isnan(sqr_mag)) {
+        return v;
+    }
+
+    const float dot_over_sqr_mag = Vector3::dot(v, n) / sqr_mag;
+    return Vector3(v.x - n.x * dot_over_sqr_mag, v.y - n.y * dot_over_sqr_mag, v.z - n.z * dot_over_sqr_mag);
+}
+
 float get_line_segment_plane_distance(const Vector3& a, const Vector3& b, const Triangle& triangle,
                                       Vector3& closer_point) {
 

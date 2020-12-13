@@ -15,9 +15,11 @@ struct Vector3 {
     Vector3& operator=(const Vector3& v) = default;
     Vector3 operator+(const Vector3& v) const;
     Vector3 operator-(const Vector3& v) const;
+    Vector3 operator-() const;
     void operator+=(const Vector3& v);
     void operator-=(const Vector3& v);
     Vector3 operator*(float f) const;
+    void operator*=(float f);
     bool operator==(const Vector3& v) const;
 
     static float dot(const Vector3& v1, const Vector3& v2);
