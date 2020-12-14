@@ -21,6 +21,7 @@ struct Vector3 {
     Vector3 operator*(float f) const;
     void operator*=(float f);
     bool operator==(const Vector3& v) const;
+    Vector3 horizontal() const;
 
     static float dot(const Vector3& v1, const Vector3& v2);
     static Vector3 cross(const Vector3& v1, const Vector3& v2);
@@ -30,6 +31,9 @@ struct Vector3 {
     static Vector3 rotate_around(const Vector3& v, const Vector3& axis, float angle);
 
     static const Vector3 up;
+    static const Vector3 down;
+    static const Vector3 forward;
+    static const Vector3 left;
     static const Vector3 zero;
 
     std::string to_string() const;

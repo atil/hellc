@@ -79,9 +79,13 @@ void Platform::read_input() {
     }
     if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         this->current_keys.push_back(KeyCode::Up);
+        this->current_keys.push_back(KeyCode::Jump);
     }
     if (glfwGetKey(this->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         this->current_keys.push_back(KeyCode::Down);
+    }
+    if (glfwGetKey(this->window, GLFW_KEY_K) == GLFW_PRESS) {
+        this->current_keys.push_back(KeyCode::ToggleFly);
     }
 
     double mouse_x, mouse_y;

@@ -1,4 +1,4 @@
-// TODO @BACKLOG Vertex colors
+// TODO @NEXT: Lighting
 
 #include "render/render.h"
 #include "assets.h"
@@ -12,8 +12,8 @@ int main() {
     const ObjModelData obj_data("assets/test_lighting.obj");
     World world;
     world.register_static_collider(obj_data);
-    World::run_geom_tests();
-    World::run_collision_tests();
+    Physics::run_geom_tests();
+    Physics::run_collision_tests();
     getchar();
     return 0;
 }

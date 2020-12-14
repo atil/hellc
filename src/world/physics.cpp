@@ -73,16 +73,22 @@ Vector3 Physics::compute_penetrations(const Vector3& player_pos, const std::vect
 }
 
 bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_dir_horz, const std::vector<StaticCollider>& static_colliders, Vector3& ground_normal) {
-
     const PlayerShape player_shape(player_pos, player_height, player_radius);
-    const Ray mid(player_shape.tip_bottom, -Vector3::up);
-    // TODO @TASK: Add more ray slots and ghost jump slot here
+    const Vector3 mid_pos = player_shape.segment_bottom;
 
-    std::vector<Ray> grounded_check_rays{ mid };
+    const Vector3 left = Vector3::cross(Vector3::up, player_move_dir_horz);
+    std::vector<Ray> grounded_check_rays {
+        Ray(mid_pos, Vector3::down),
+        Ray(mid_pos + player_move_dir_horz * player_shape.radius, Vector3::down),
+        Ray(mid_pos - player_move_dir_horz * player_shape.radius, Vector3::down),
+        Ray(mid_pos + left * player_shape.radius, Vector3::down),
+        Ray(mid_pos - left * player_shape.radius, Vector3::down),
+    };
 
+    const float ray_length = player_shape.radius + 0.1f;
     Ray hit(Vector3::zero, Vector3::zero);
     for (const Ray& ray : grounded_check_rays) {
-        if (raycast(ray, 0.01f, static_colliders, hit)) {
+        if (raycast(ray, ray_length, static_colliders, hit)) {
 
             ground_normal = hit.direction;
             return true;
@@ -92,7 +98,6 @@ bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_
 }
 
 bool Physics::raycast(const Ray& ray, float max_dist, const std::vector<StaticCollider>& static_colliders, Ray& out) {
-
     for (const StaticCollider& collider : static_colliders) {
         for (const Triangle& triangle : collider.get_triangles()) {
 

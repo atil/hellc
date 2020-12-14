@@ -6,6 +6,8 @@
 void Physics::run_collision_tests() {
     std::cout << "Running collision tests " << std::endl;
 
+    // TODO @TEST: iron bars
+
     // Triangle below player
     PlayerShape ps(Vector3(0, 3, 0), 1, 0.5f);
     Triangle t1(Vector3(-1, 0, 1), Vector3(1, 0, 1), Vector3(0, 0, -1));

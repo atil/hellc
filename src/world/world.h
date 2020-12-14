@@ -78,10 +78,11 @@ class World {
     std::vector<StaticCollider> static_colliders;
 
     // Player
-    Vector3 player_position{ 0, 3, 0 };
+    Vector3 player_position{ -10, 3, 0 };
     Vector3 player_forward{ 0, 0, -1 };
     Vector3 player_velocity{ 0, 0, 0 };
-    bool fly_move_enabled = true;
+    bool is_prev_grounded = false;
+    bool fly_move_enabled = false;
     void fly_move(const Platform& platform, float dt);
     void mouse_look(const Platform& platform, float dt);
 

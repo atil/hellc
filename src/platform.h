@@ -9,6 +9,7 @@ enum class KeyCode {
     Right,
     Up,
     Down,
+    Jump,
     ToggleFly,
     
 };

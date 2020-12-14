@@ -66,6 +66,8 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
+    // TODO @BACKLOG Vertex colors
+
     glGenBuffers(1, &(this->ibo));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data.data(), GL_STATIC_DRAW);

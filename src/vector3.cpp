@@ -42,6 +42,10 @@ bool Vector3::operator== (const Vector3& v) const {
     return abs(x - v.x) < eps && abs(y - v.y) < eps && abs(z - v.z) < eps;
 }
 
+Vector3 Vector3::horizontal() const {
+    return { x, 0, z };
+}
+
 float Vector3::dot(const Vector3& v1, const Vector3& v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
@@ -74,7 +78,10 @@ Vector3 Vector3::rotate_around(const Vector3& v, const Vector3& axis, float angl
 }
 
 const Vector3 Vector3::up = Vector3(0, 1, 0);
+const Vector3 Vector3::left = Vector3(1, 0, 0);
+const Vector3 Vector3::forward = Vector3(0, 0, 1);
 
+const Vector3 Vector3::down = Vector3(0, -1, 0);
 const Vector3 Vector3::zero = Vector3(0, 0, 0);
 
 std::string Vector3::to_string() const {
