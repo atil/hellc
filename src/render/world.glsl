@@ -5,7 +5,7 @@ layout (location = 2) in vec3 in_normal;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
-uniform mat4 u_perspective;
+uniform mat4 u_projection;
 
 out vec2 v2f_uv;
 out vec3 v2f_normal;
@@ -14,7 +14,7 @@ void main() {
     v2f_uv = in_uv;
     v2f_normal = in_normal;
 
-    gl_Position = u_perspective * u_view * u_model * vec4(in_position, 1.0);
+    gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);
 };
 
 #endif

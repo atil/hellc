@@ -7,6 +7,13 @@
 #include <GL/glew.h>
 #include "render.h"
 
+void check_gl_error_shader(const std::string& tag) {
+    const int error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cout << "Shader GL error [" << tag << "] error code: [" << error << "]" << std::endl;
+    }
+}
+
 shader_handle_t load_shader(const std::string& header, const std::string& program_string, int shader_type) {
     const std::string shader_string = header + program_string;
     const char* cstr = shader_string.c_str();
@@ -78,17 +85,17 @@ Shader::Shader(const std::string& file_path) {
     }
 
     this->shader_program_handle = shader_program;
+    check_gl_error_shader("shader_init");
+}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+    this->shader_program_handle = other.shader_program_handle;
+    other.shader_program_handle = 0; // No valid shader gets this value
+    return *this;
 }
 
 void Shader::use() const {
     glUseProgram(this->shader_program_handle);
-}
-
-void check_gl_error_shader(const std::string& tag) {
-    const int error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "Shader GL error [" << tag << "] error code: [" << error << "]" << std::endl;
-    }
 }
 
 uniform_loc_t Shader::get_location(const std::string& property_name) const {

@@ -92,8 +92,6 @@ void apply_air_control(Vector3& player_velocity, const Vector3& wish_dir, const 
     Vector3 player_dir_horz = Vector3::normalize(player_velocity.horizontal());
     const float player_speed_horz = Vector3::length(player_velocity.horizontal());
 
-        std::cout << move_input.to_string() << std::endl;
-
     const float dot = Vector3::dot(player_dir_horz, wish_dir);
     if (dot > 0) {
         float k = air_control_coeff * dot * dot * dt;

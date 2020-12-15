@@ -3,16 +3,10 @@
 #include "stb_image.h"
 #pragma warning(pop)
 
-#include "render.h"
-#include <iostream>
-#include "../config.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
-
-
-constexpr size_t floats_per_vertex = 8;
-constexpr size_t bytes_per_vertex = floats_per_vertex * sizeof(float);
-constexpr size_t bytes_per_face = 3 * bytes_per_vertex;
+#include <iostream>
+#include "render.h"
 
 void check_gl_error_renderunit(const std::string& tag) {
     const int error = glGetError();
@@ -22,7 +16,6 @@ void check_gl_error_renderunit(const std::string& tag) {
 }
 
 RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data)
-    : shader("src/render/world.glsl")
 {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
@@ -87,24 +80,13 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
 
-
-    this->shader.use();
-    this->shader.set_int("u_texture", 0);
-    this->shader.set_mat4("u_perspective", perspective);
-    this->shader.set_mat4("u_model", Matrix4::identity());
 }
 
-constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
-const Matrix4 RenderUnit::perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100.0f);
-
-void RenderUnit::render(const Matrix4& player_view_matrix) const {
-    this->shader.use();
+void RenderUnit::render() const {
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->tex_handle);
-    this->shader.set_mat4("u_view", player_view_matrix);
-
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(this->index_data_length), GL_UNSIGNED_INT, nullptr);
 }
 

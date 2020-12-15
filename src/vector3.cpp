@@ -4,11 +4,11 @@
 constexpr float deg_to_rad = 0.0174533f;
 
 Vector3 Vector3::operator+ (const Vector3& v) const {
-    return {x + v.x, y + v.y, z + v.z};
+    return { x + v.x, y + v.y, z + v.z };
 }
 
 Vector3 Vector3::operator- (const Vector3& v) const {
-    return {x - v.x, y - v.y, z - v.z};
+    return { x - v.x, y - v.y, z - v.z };
 }
 
 Vector3 Vector3::operator-() const {
@@ -97,7 +97,7 @@ Vector3 operator*(const float& f, const Vector3& v) {
 }
 
 Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
-    Matrix4 m{0};
+    Matrix4 m{ 0 };
 
     const Vector3 left = Vector3::normalize(Vector3::cross(forward, up));
     const Vector3 local_up = Vector3::cross(left, forward);
@@ -139,8 +139,21 @@ Matrix4 Matrix4::perspective(float fov, float aspect_ratio, float near, float fa
     return m;
 }
 
+Matrix4 Matrix4::ortho(float left, float right, float bottom, float top, float near, float far) {
+    Matrix4 m{ 0 };
+
+    m.data[0 * 4 + 0] = 2 / (right - left);
+    m.data[1 * 4 + 1] = 2 / (top - bottom);
+    m.data[2 * 4 + 2] = -2 / (far - near);
+    m.data[3 * 4 + 0] = -(right + left) / (right - left);
+    m.data[3 * 4 + 1] = -(top + bottom) / (top - bottom);
+    m.data[3 * 4 + 2] = -(far + near) / (far - near);
+
+    return m;
+}
+
 Matrix4 Matrix4::identity() {
-    Matrix4 m{0};
+    Matrix4 m{ 0 };
 
     // TODO @CLEANUP: Can we make this a static const?
     m.data[0 * 4 + 0] = 1.0f;

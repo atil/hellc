@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\render\light.cpp" />
     <ClCompile Include="src\vector3.cpp" />
     <ClCompile Include="src\world\physics_tests.cpp" />
     <ClCompile Include="src\world\geom_tests.cpp" />
@@ -214,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\render\world.glsl" />
+    <None Include="src\render\shadowmap_depth_directional.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />

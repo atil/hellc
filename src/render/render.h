@@ -4,13 +4,13 @@
 #include "../assets.h"
 #include "../vector3.h"
 
-typedef unsigned int buffer_handle_t;
-typedef unsigned int tex_handle_t;
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
+typedef unsigned int buffer_handle_t;
+typedef unsigned int tex_handle_t;
 
 class Shader {
-    shader_handle_t shader_program_handle;
+    shader_handle_t shader_program_handle {0};
     uniform_loc_t get_location(const std::string& property_name) const;
 public:
     void set_int(const std::string& property_name, int i) const;
@@ -20,6 +20,8 @@ public:
     void use() const;
 
     explicit Shader(const std::string& file_path);
+    Shader& operator=(Shader&& other) noexcept;
+    explicit Shader() = default;
     ~Shader();
 };
 
@@ -41,7 +43,6 @@ struct Image {
 
 class RenderUnit {
 
-    Shader shader;
     buffer_handle_t vao{};
     buffer_handle_t vbo{};
     buffer_handle_t ibo{};
@@ -54,11 +55,24 @@ public:
     RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data);
     ~RenderUnit();
 
-    void render(const Matrix4& player_view_matrix) const;
+    void render() const;
+};
+
+struct DirectionalLight {
+    Vector3 direction;
+    Matrix4 view;
+    Matrix4 projection;
+    Shader shader;
+    buffer_handle_t fbo;
+
+    DirectionalLight();
+
+    void fill_depth_texture(const std::vector<RenderUnit>& render_units) const;
 };
 
 class Renderer {
     std::vector<RenderUnit> render_units;
+    Shader world_shader;
 
 public:
     Renderer();

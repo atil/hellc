@@ -1,4 +1,5 @@
-// TODO @NEXT: Lighting
+// TODO @NEXT: Call the directional light render function
+// TODO @NEXT: Edit shader with directional light
 
 #include "render/render.h"
 #include "assets.h"
