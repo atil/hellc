@@ -96,6 +96,20 @@ Vector3 operator*(const float& f, const Vector3& v) {
     return v * f;
 }
 
+Matrix4 Matrix4::operator*(const Matrix4& other) {
+    Matrix4 m{ 0 };
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 4; k++) {
+                m.data[i * 4 + j] += data[i * 4 + k] * other.data[k * 4 + j];
+            }
+        }
+    }
+
+    return m;
+}
+
 Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
     Matrix4 m{ 0 };
 

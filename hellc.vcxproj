@@ -214,8 +214,8 @@
     <ClInclude Include="src\world\world.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\render\world.glsl" />
-    <None Include="src\render\shadowmap_depth_directional.glsl" />
+    <None Include="src\render\shader\world.glsl" />
+    <None Include="src\render\shader\shadowmap_depth_directional.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />

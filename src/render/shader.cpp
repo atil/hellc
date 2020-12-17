@@ -45,7 +45,7 @@ shader_handle_t load_shader(const std::string& header, const std::string& progra
 Shader::Shader(const std::string& file_path) {
     const std::ifstream shader_stream(file_path);
     if (!shader_stream.is_open()) {
-        std::cout << "Failed to open shader file" << file_path << std::endl;
+        std::cout << "Failed to open shader file: " << file_path << std::endl;
         this->shader_program_handle = -1;
         return;
     }

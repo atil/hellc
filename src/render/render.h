@@ -4,6 +4,8 @@
 #include "../assets.h"
 #include "../vector3.h"
 
+constexpr size_t shadowmap_size = 2048;
+
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
 typedef unsigned int buffer_handle_t;
@@ -42,7 +44,6 @@ struct Image {
 };
 
 class RenderUnit {
-
     buffer_handle_t vao{};
     buffer_handle_t vbo{};
     buffer_handle_t ibo{};
@@ -58,14 +59,19 @@ public:
     void render() const;
 };
 
-struct DirectionalLight {
+class DirectionalLight {
     Vector3 direction;
-    Matrix4 view;
-    Matrix4 projection;
     Shader shader;
     buffer_handle_t fbo;
+    
+public:
+    Matrix4 view;
+    Matrix4 projection;
 
-    DirectionalLight();
+    DirectionalLight() = default;
+    explicit DirectionalLight(const Vector3& dir);
+    DirectionalLight& operator=(DirectionalLight&& other) noexcept;
+    ~DirectionalLight();
 
     void fill_depth_texture(const std::vector<RenderUnit>& render_units) const;
 };
@@ -73,6 +79,7 @@ struct DirectionalLight {
 class Renderer {
     std::vector<RenderUnit> render_units;
     Shader world_shader;
+    DirectionalLight directional_light;
 
 public:
     Renderer();

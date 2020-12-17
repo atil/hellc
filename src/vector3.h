@@ -44,6 +44,8 @@ Vector3 operator*(const float& f, const Vector3& v);
 struct Matrix4 {
     float data[16];
 
+    Matrix4 operator*(const Matrix4& other);
+
     static Matrix4 look_at(const Vector3& eye, const Vector3& forward, const Vector3& up);
     static Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
     static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);

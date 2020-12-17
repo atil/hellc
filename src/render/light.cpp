@@ -2,8 +2,6 @@
 #include <GL/glew.h>
 #include "render.h"
 
-constexpr size_t shadowmap_size = 2048;
-
 tex_handle_t create_shadowmap_texture() {
     tex_handle_t depth_texture_handle;
 
@@ -21,11 +19,11 @@ tex_handle_t create_shadowmap_texture() {
     return depth_texture_handle;
 }
 
-DirectionalLight::DirectionalLight() : shader("shadowmap_depth_directional.glsl") {
-    this->direction = Vector3(100.0f, -100.0f, -20.0f);
+DirectionalLight::DirectionalLight(const Vector3& dir) : direction(dir), shader("src/render/shader/shadowmap_depth_directional.glsl") {
+
     this->view = Matrix4::look_at(-direction, direction, Vector3::up);
 
-    const float s = 100.0f;
+    constexpr float s = 100.0f; // TODO @CLEANUP: What's this "s" is called?
     this->projection = Matrix4::ortho(-s, s, -s, s, 0.01f, 1000.0f);
 
     const tex_handle_t depth_tex_handle = create_shadowmap_texture();
@@ -44,16 +42,28 @@ DirectionalLight::DirectionalLight() : shader("shadowmap_depth_directional.glsl"
     glBindTexture(GL_TEXTURE_2D, depth_tex_handle);
 }
 
+DirectionalLight& DirectionalLight::operator=(DirectionalLight&& other) noexcept {
+    this->fbo = other.fbo;
+    other.fbo = 0;
+
+    // NOTE @CPP: Regular assignment doesn't work here, needs to be move
+    this->shader = std::move(other.shader);
+
+    return *this;
+}
+
+DirectionalLight::~DirectionalLight() {
+    glDeleteFramebuffers(1, &(this->fbo));
+}
+
 void DirectionalLight::fill_depth_texture(const std::vector<RenderUnit>& render_units) const {
     this->shader.use();
-    glViewport(0, 0, shadowmap_size, shadowmap_size);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    this->shader.set_mat4("u_model", Matrix4::identity());
 
+    glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
     for (const RenderUnit& ru : render_units) {
         ru.render();
     }
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }

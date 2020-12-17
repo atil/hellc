@@ -1,5 +1,6 @@
-// TODO @NEXT: Call the directional light render function
-// TODO @NEXT: Edit shader with directional light
+// TODO @NEXT: Debug lights. Looks like we can't write to the depth buffer
+// Look at the existing code and see if we need to do anything else besides binding the buffer
+// TODO @NEXT: See if we can move mtl loading to assets module
 
 #include "render/render.h"
 #include "assets.h"
