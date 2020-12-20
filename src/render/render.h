@@ -4,7 +4,9 @@
 #include "../assets.h"
 #include "../vector3.h"
 
-constexpr size_t shadowmap_size = 2048;
+constexpr size_t shadowmap_size = 512;
+constexpr float near_plane = 0.01f;
+constexpr float far_plane = 100.0f;
 
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
@@ -16,14 +18,18 @@ class Shader {
     uniform_loc_t get_location(const std::string& property_name) const;
 public:
     void set_int(const std::string& property_name, int i) const;
-    void set_vec3(const std::string& property_name, const Vector3& v) const;
+    void set_vec3(const std::string& roperty_name, const Vector3& v) const;
     void set_mat4(const std::string& property_name, const Matrix4& m) const;
     void set_float(const std::string& property_name, float f) const;
     void use() const;
 
-    explicit Shader(const std::string& file_path);
-    Shader& operator=(Shader&& other) noexcept;
     explicit Shader() = default;
+    explicit Shader(const std::string& file_path);
+    Shader(Shader& other) = delete;
+    Shader(Shader&& other) = delete;
+    Shader& operator=(Shader& other) = delete;
+    Shader& operator=(Shader&& other) noexcept;
+
     ~Shader();
 };
 
@@ -40,6 +46,10 @@ struct Image {
     unsigned char* image_data;
 
     explicit Image(const std::string& file_path);
+    Image(const Image& other) = delete;
+    Image(const Image&& other) = delete;
+    Image& operator=(Image& other) = delete;
+    Image& operator=(Image&& other) = delete;
     ~Image();
 };
 
@@ -59,21 +69,18 @@ public:
     void render() const;
 };
 
-class DirectionalLight {
-    Vector3 direction;
+struct DirectionalLight {
     Shader shader;
     buffer_handle_t fbo;
-    
-public:
-    Matrix4 view;
-    Matrix4 projection;
+    Matrix4 view_proj;
 
     DirectionalLight() = default;
     explicit DirectionalLight(const Vector3& dir);
+    DirectionalLight(const DirectionalLight& other) = delete;
+    DirectionalLight(const DirectionalLight&& other) = delete;
+    DirectionalLight& operator=(DirectionalLight& other) = delete;
     DirectionalLight& operator=(DirectionalLight&& other) noexcept;
     ~DirectionalLight();
-
-    void fill_depth_texture(const std::vector<RenderUnit>& render_units) const;
 };
 
 class Renderer {

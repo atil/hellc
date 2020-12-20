@@ -1,12 +1,10 @@
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#define GLEW_STATIC
-#include <GL/glew.h>
 #include "render.h"
 #include "../config.h"
-
-// TODO @TASK: Text rendering
 
 constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
 const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100.0f);
@@ -22,18 +20,13 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
-    const Vector3 directional_light_dir(100.0f, -100.0f, -20.0f);
-
-    // NOTE @CPP: These are move assignments
-    // If we don't _move_ stuff, then the temporary copies gets dtor'ed at the end of the scope
-    // which call GL stuff, which invalidates stuff for the existing instances
-    this->world_shader = Shader("src/render/shader/world.glsl");
+    const Vector3 directional_light_dir(15.0f, 55.0f, -5.0f);
     this->directional_light = DirectionalLight(directional_light_dir);
-    const Matrix4 directional_light_vp = this->directional_light.projection * this->directional_light.view;
 
+    this->world_shader = Shader("src/render/shader/world.glsl");
     this->world_shader.use();
     this->world_shader.set_vec3("u_directional_light_dir", directional_light_dir);
-    this->world_shader.set_mat4("u_directional_light_vp", directional_light_vp);
+    this->world_shader.set_mat4("u_directional_light_vp", this->directional_light.view_proj);
     this->world_shader.set_int("u_texture", 0);
     this->world_shader.set_int("u_shadowmap_directional", 1);
     this->world_shader.set_mat4("u_projection", perspective);
@@ -106,22 +99,28 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
 }
 
 void Renderer::render(const Matrix4& player_view_matrix) {
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, shadowmap_size, shadowmap_size);
-    glDisable(GL_CULL_FACE);
-    this->directional_light.fill_depth_texture(this->render_units);
 
-    // TODO @TASK: Skybox
-    // TODO @TASK: Point shadows
-    // TODO @TASK: Low-res effect
+    this->directional_light.shader.use();
+    glViewport(0, 0, shadowmap_size, shadowmap_size);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light.fbo);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    for (const RenderUnit& ru : render_units) {
+        ru.render();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
-    glEnable(GL_CULL_FACE);
+
     this->world_shader.use();
     this->world_shader.set_mat4("u_view", player_view_matrix);
 
     for (const RenderUnit& ru : this->render_units) {
         ru.render();
     }
+
+    // TODO @TASK: Skybox
+    // TODO @TASK: Point shadows
+    // TODO @TASK: Low-res effect
+    // TODO @TASK: Text rendering
 }

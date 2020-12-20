@@ -96,7 +96,7 @@ Vector3 operator*(const float& f, const Vector3& v) {
     return v * f;
 }
 
-Matrix4 Matrix4::operator*(const Matrix4& other) {
+Matrix4 Matrix4::operator*(const Matrix4& other) const {
     Matrix4 m{ 0 };
 
     for (int i = 0; i < 4; i++) {
@@ -110,9 +110,10 @@ Matrix4 Matrix4::operator*(const Matrix4& other) {
     return m;
 }
 
-Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& forward, const Vector3& up) {
+Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& center, const Vector3& up) {
     Matrix4 m{ 0 };
 
+    const Vector3 forward = Vector3::normalize(center - eye);
     const Vector3 left = Vector3::normalize(Vector3::cross(forward, up));
     const Vector3 local_up = Vector3::cross(left, forward);
 
@@ -149,19 +150,18 @@ Matrix4 Matrix4::perspective(float fov, float aspect_ratio, float near, float fa
     m.data[3 * 4 + 2] = -(2.0f * far * near) / (far - near);
     m.data[3 * 4 + 3] = 0.0f;
 
-
     return m;
 }
 
 Matrix4 Matrix4::ortho(float left, float right, float bottom, float top, float near, float far) {
-    Matrix4 m{ 0 };
+    Matrix4 m = identity();
 
     m.data[0 * 4 + 0] = 2 / (right - left);
     m.data[1 * 4 + 1] = 2 / (top - bottom);
-    m.data[2 * 4 + 2] = -2 / (far - near);
-    m.data[3 * 4 + 0] = -(right + left) / (right - left);
-    m.data[3 * 4 + 1] = -(top + bottom) / (top - bottom);
-    m.data[3 * 4 + 2] = -(far + near) / (far - near);
+    m.data[2 * 4 + 2] = - 2 / (far - near);
+    m.data[3 * 4 + 0] = - (right + left) / (right - left);
+    m.data[3 * 4 + 1] = - (top + bottom) / (top - bottom);
+    m.data[3 * 4 + 2] = - (far + near) / (far - near);
 
     return m;
 }

@@ -1,5 +1,4 @@
-// TODO @NEXT: Debug lights. Looks like we can't write to the depth buffer
-// Look at the existing code and see if we need to do anything else besides binding the buffer
+// TODO @NEXT: Debug lights.
 // TODO @NEXT: See if we can move mtl loading to assets module
 
 #include "render/render.h"

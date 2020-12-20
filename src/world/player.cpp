@@ -16,7 +16,7 @@ constexpr float air_control_coeff = 8.0f;
 constexpr float air_control_cpm_coeff = 8.0f;
 
 Matrix4 World::get_view_matrix() const {
-    return Matrix4::look_at(this->player_position, this->player_forward, Vector3::up);
+    return Matrix4::look_at(this->player_position, this->player_position + this->player_forward, Vector3::up);
 }
 
 void World::fly_move(const Platform& platform, float dt) {
