@@ -79,7 +79,6 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
     }
-
 }
 
 void RenderUnit::render() const {

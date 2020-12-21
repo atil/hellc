@@ -102,7 +102,8 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 4; k++) {
-                m.data[i * 4 + j] += data[i * 4 + k] * other.data[k * 4 + j];
+                // Column-major multiplication
+                m.data[j * 4 + i] += data[k * 4 + i] * other.data[j * 4 + k];
             }
         }
     }

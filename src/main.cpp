@@ -1,4 +1,4 @@
-// TODO @NEXT: Debug lights.
+// TODO @NEXT: Debug lights: Shader can't read from the shadowmap, but there's stuff in there.
 // TODO @NEXT: See if we can move mtl loading to assets module
 
 #include "render/render.h"

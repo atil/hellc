@@ -11,7 +11,8 @@ const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100
 
 Renderer::Renderer() {
     glewInit(); // Needs to be after the glfw context creation
-    // TODO @CLEANUP: This looks stupid
+    // TODO @CLEANUP: This looks stupid. We're doing this stuff on a variable declaration
+    // Would look better in an Init function or something.
     glViewport(0, 0, window_width, window_height);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -20,7 +21,7 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
-    const Vector3 directional_light_dir(15.0f, 55.0f, -5.0f);
+    const Vector3 directional_light_dir(55.0f, 55.0f, -5.0f);
     this->directional_light = DirectionalLight(directional_light_dir);
 
     this->world_shader = Shader("src/render/shader/world.glsl");
@@ -99,7 +100,6 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
 }
 
 void Renderer::render(const Matrix4& player_view_matrix) {
-
     this->directional_light.shader.use();
     glViewport(0, 0, shadowmap_size, shadowmap_size);
     glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light.fbo);
@@ -111,10 +111,10 @@ void Renderer::render(const Matrix4& player_view_matrix) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
-
     this->world_shader.use();
     this->world_shader.set_mat4("u_view", player_view_matrix);
-
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, this->directional_light.depth_tex_handle);
     for (const RenderUnit& ru : this->render_units) {
         ru.render();
     }

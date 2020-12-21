@@ -4,7 +4,7 @@
 #include "../assets.h"
 #include "../vector3.h"
 
-constexpr size_t shadowmap_size = 512;
+constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
 constexpr float far_plane = 100.0f;
 
@@ -53,12 +53,12 @@ struct Image {
     ~Image();
 };
 
-class RenderUnit {
+class RenderUnit {  // NOLINT(cppcoreguidelines-special-member-functions): This is used as a template type for a vector
     buffer_handle_t vao{};
     buffer_handle_t vbo{};
     buffer_handle_t ibo{};
     tex_handle_t tex_handle{};
-    size_t index_data_length;
+    size_t index_data_length{};
 
     static const Matrix4 perspective;
 
@@ -73,6 +73,7 @@ struct DirectionalLight {
     Shader shader;
     buffer_handle_t fbo;
     Matrix4 view_proj;
+    tex_handle_t depth_tex_handle;
 
     DirectionalLight() = default;
     explicit DirectionalLight(const Vector3& dir);
