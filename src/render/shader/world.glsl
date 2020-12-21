@@ -58,7 +58,10 @@ float get_t_shadow_directional() {
 
     // If the surface is perpendicular to the light direction
     // then it needs larger bias values
-    float perp_bias = 0.0005;
+    // TODO @BACKLOG: Directional shadow with very narrow angles
+    // This perp_bias isn't high enough to handle those cases. If we increase that
+    // then we see the other artifacts and the base of the walls.
+    float perp_bias = 0.001;
     float parallel_bias = 0.0001;
     float bias = max(perp_bias * (1.0 - alignment_with_directional_light), parallel_bias);
 
