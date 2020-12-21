@@ -67,3 +67,20 @@ Skybox::~Skybox() {
     glDeleteBuffers(1, &this->vao);
     glDeleteBuffers(1, &this->vbo);
 }
+
+void Skybox::render(const Matrix4& player_view_matrix) const {
+    this->shader.use();
+    glDepthFunc(GL_LEQUAL);
+    Matrix4 skybox_view = player_view_matrix;
+    skybox_view.data[3 * 4 + 0] = 0.0f; // Clear translation row
+    skybox_view.data[3 * 4 + 1] = 0.0f;
+    skybox_view.data[3 * 4 + 2] = 0.0f;
+    this->shader.set_mat4("u_view", skybox_view);
+    glBindVertexArray(this->vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap_handle);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
+}
+

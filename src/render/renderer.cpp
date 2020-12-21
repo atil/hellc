@@ -125,20 +125,10 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     for (const RenderUnit& ru : this->render_units) {
         ru.render();
     }
+    
+    // Skybox: fill fragments with depth == 1
+    this->skybox.render(player_view_matrix);
 
-    this->skybox.shader.use();
-    glDepthFunc(GL_LEQUAL);
-    Matrix4 skybox_view = player_view_matrix;
-    skybox_view.data[3 * 4 + 0] = 0.0f; // Clear translation row
-    skybox_view.data[3 * 4 + 1] = 0.0f;
-    skybox_view.data[3 * 4 + 2] = 0.0f;
-    this->skybox.shader.set_mat4("u_view", skybox_view);
-    glBindVertexArray(this->skybox.vao);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, this->skybox.cubemap_handle);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glDepthFunc(GL_LESS);
 
     // TODO @TASK: Point shadows
     // TODO @TASK: Low-res effect

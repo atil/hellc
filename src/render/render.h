@@ -15,8 +15,12 @@ typedef unsigned int shader_handle_t;
 typedef unsigned int buffer_handle_t;
 typedef unsigned int tex_handle_t;
 
+constexpr shader_handle_t default_shader_handle = 0;
+constexpr buffer_handle_t default_buffer_handle = 0;
+constexpr tex_handle_t default_tex_handle = 0;
+
 class Shader {
-    shader_handle_t shader_program_handle {0};
+    shader_handle_t shader_program_handle{ default_shader_handle };
     uniform_loc_t get_location(const std::string& property_name) const;
 public:
     void set_int(const std::string& property_name, int i) const;
@@ -38,8 +42,8 @@ public:
 struct Material {
     std::string name;
     std::string diffuse_texture_name;
-    float diffuse[3];
-    float transparency;
+    float diffuse[3]{ 0 };
+    float transparency { 0 };
 };
 
 struct Image {
@@ -56,11 +60,11 @@ struct Image {
 };
 
 class RenderUnit {  // NOLINT(cppcoreguidelines-special-member-functions): This is used as a template type for a vector
-    buffer_handle_t vao{};
-    buffer_handle_t vbo{};
-    buffer_handle_t ibo{};
-    tex_handle_t tex_handle{};
-    size_t index_data_length{};
+    buffer_handle_t vao{ default_buffer_handle };
+    buffer_handle_t vbo{ default_buffer_handle };
+    buffer_handle_t ibo{ default_buffer_handle };
+    tex_handle_t tex_handle{ default_tex_handle };
+    size_t index_data_length{ 0 };
 
     static const Matrix4 perspective;
 
@@ -73,9 +77,9 @@ public:
 
 struct DirectionalLight {
     Shader shader;
-    buffer_handle_t fbo;
-    Matrix4 view_proj;
-    tex_handle_t depth_tex_handle;
+    buffer_handle_t fbo{ default_buffer_handle };
+    Matrix4 view_proj{ 0 };
+    tex_handle_t depth_tex_handle{ default_tex_handle };
 
     DirectionalLight() = default;
     explicit DirectionalLight(const Vector3& dir);
@@ -86,15 +90,20 @@ struct DirectionalLight {
     ~DirectionalLight();
 };
 
-struct Skybox {
+class Skybox {
     Shader shader;
-    tex_handle_t cubemap_handle;
-    buffer_handle_t vao;
-    buffer_handle_t vbo;
+    tex_handle_t cubemap_handle{ default_tex_handle };
+    buffer_handle_t vao{ default_buffer_handle };
+    buffer_handle_t vbo{ default_buffer_handle };
 
+public:
+    void render(const Matrix4& player_view_matrix) const;
     Skybox() = default;
     explicit Skybox(const std::string& skybox_path, const Matrix4& projection);
+    Skybox(const Skybox& other) = delete;
+    Skybox(const Skybox&& other) = delete;
     Skybox& operator=(Skybox&& other) noexcept;
+    Skybox& operator=(Skybox& other) = delete;
     ~Skybox();
 };
 
