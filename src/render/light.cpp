@@ -4,7 +4,7 @@
 
 DirectionalLight::DirectionalLight(const Vector3& dir) {
     constexpr float s = 100.0f; // Ortho volume size
-    const Matrix4 proj = Matrix4::ortho(-s, s, -s, s, 0.001f, 100.0f);
+    const Matrix4 proj = Matrix4::ortho(-s, s, -s, s, directional_shadow_near_plane, directional_shadow_far_plane);
     const Matrix4 view = Matrix4::look_at(dir, Vector3::zero, Vector3::up);
     this->view_proj = proj * view;
 

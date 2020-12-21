@@ -58,12 +58,14 @@ float get_t_shadow_directional() {
 
     // If the surface is perpendicular to the light direction
     // then it needs larger bias values
-    float bias = max(0.005 * (1.0 - alignment_with_directional_light), 0.00001);
+    float perp_bias = 0.0005;
+    float parallel_bias = 0.0001;
+    float bias = max(perp_bias * (1.0 - alignment_with_directional_light), parallel_bias);
 
     float shadow = 0.0;
 
-    float pcf_depth = texture(u_shadowmap_directional, pos.xy).r; 
-    shadow += (pcf_depth + bias) < pos.z ? 1.0 : 0.0;  // 1 if shadowed
+    float tex_depth = texture(u_shadowmap_directional, pos.xy).r; 
+    shadow += (tex_depth + bias) < pos.z ? 1.0 : 0.0;  // 1 if shadowed
     return shadow;
 
 //    vec2 texel_size = 1.0 / textureSize(u_shadowmap_directional, 0);
@@ -89,10 +91,5 @@ void main() {
     float t = get_t_shadow_directional(); // 1 means shadow
     brightness += mix(1.0, 0.0, t);
     frag_color = mix(shadowed_tex_color, tex_color, brightness);
-
-//    vec3 pos = v2f_frag_light_space_pos.xyz * 0.5 + 0.5; // Map from [-1,1] to [0,1]
-//    float d = texture(u_shadowmap_directional, pos.xy).r; 
-//    frag_color = vec4(d, d, d, 1);
-//
 };
 #endif

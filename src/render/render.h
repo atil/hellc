@@ -7,6 +7,8 @@
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
 constexpr float far_plane = 100.0f;
+constexpr float directional_shadow_near_plane = 0.001f;
+constexpr float directional_shadow_far_plane = 1000.0f;
 
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;

@@ -21,7 +21,7 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
-    const Vector3 directional_light_dir(55.0f, 55.0f, -5.0f);
+    const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = DirectionalLight(directional_light_dir);
 
     this->world_shader = Shader("src/render/shader/world.glsl");
@@ -100,15 +100,20 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
 }
 
 void Renderer::render(const Matrix4& player_view_matrix) {
+    
+    // Directional shadows
     this->directional_light.shader.use();
     glViewport(0, 0, shadowmap_size, shadowmap_size);
     glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light.fbo);
+    glDisable(GL_CULL_FACE); // Write to depth buffer with all faces. Otherwise the backfaces won't cause shadows
     glClear(GL_DEPTH_BUFFER_BIT);
     for (const RenderUnit& ru : render_units) {
         ru.render();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glEnable(GL_CULL_FACE);
 
+    // Draw to screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
     this->world_shader.use();
