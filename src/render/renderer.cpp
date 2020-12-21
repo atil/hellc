@@ -128,12 +128,11 @@ void Renderer::render(const Matrix4& player_view_matrix) {
 
     this->skybox.shader.use();
     glDepthFunc(GL_LEQUAL);
-    Matrix4 skybox_view = player_view_matrix.transposed();
-    //skybox_view.data[0 * 4 + 3] = 0.0f;
-    //skybox_view.data[1 * 4 + 3] = 0.0f;
-    //skybox_view.data[2 * 4 + 3] = 0.0f;
-    //skybox_view.data[3 * 4 + 3] = 0.0f;
-    this->skybox.shader.set_mat4("u_view", skybox_view); // suspicious
+    Matrix4 skybox_view = player_view_matrix;
+    skybox_view.data[3 * 4 + 0] = 0.0f; // Clear translation row
+    skybox_view.data[3 * 4 + 1] = 0.0f;
+    skybox_view.data[3 * 4 + 2] = 0.0f;
+    this->skybox.shader.set_mat4("u_view", skybox_view);
     glBindVertexArray(this->skybox.vao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, this->skybox.cubemap_handle);

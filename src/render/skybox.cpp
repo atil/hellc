@@ -13,7 +13,7 @@ constexpr float skybox_vertex_data[108] = {
 };
 
 void load_skybox_face(const std::string& face_path, GLuint skybox_side) {
-    const Image image(face_path);
+    const Image image(face_path, false);
     glTexImage2D(skybox_side, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image_data);
 }
 

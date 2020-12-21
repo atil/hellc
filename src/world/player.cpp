@@ -4,7 +4,7 @@
 #include <tuple>
 
 constexpr float fly_speed = 10.0f;
-constexpr float sensitivity = 1.0f;
+constexpr float sensitivity = 2.0f;
 constexpr float max_speed = 8.0f;
 constexpr float gravity = 16.0f;
 constexpr float ground_accel = 8.0f;
@@ -104,8 +104,6 @@ void apply_air_control(Vector3& player_velocity, const Vector3& wish_dir, const 
         player_dir_horz = Vector3::normalize(player_dir_horz);
         player_velocity = (player_dir_horz * player_speed_horz).horizontal() + Vector3::up * player_velocity.y;
     }
-
-
 }
 
 void World::tick(const Platform& platform, float dt) {

@@ -47,7 +47,7 @@ struct Image {
     int height;
     unsigned char* image_data;
 
-    explicit Image(const std::string& file_path);
+    explicit Image(const std::string& file_path, bool flip_vertical);
     Image(const Image& other) = delete;
     Image(const Image&& other) = delete;
     Image& operator=(Image& other) = delete;

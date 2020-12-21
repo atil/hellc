@@ -15,8 +15,7 @@ void check_gl_error_renderunit(const std::string& tag) {
     }
 }
 
-RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data)
-{
+RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data) {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
     for (const ObjFaceData& face_data : obj_submodel_data.faces) {
@@ -70,7 +69,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
     // We're temporarily handling it like this, but we should use another shader for this
     if (!material.diffuse_texture_name.empty()) {
         const std::string image_path = "assets/" + material.diffuse_texture_name;
-        const Image image(image_path);
+        const Image image(image_path, true);
         glGenTextures(1, &(this->tex_handle));
         glBindTexture(GL_TEXTURE_2D, this->tex_handle);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -95,8 +94,8 @@ RenderUnit::~RenderUnit() {
     glDeleteBuffers(1, &(this->ibo));
 }
 
-Image::Image(const std::string& file_path) {
-    stbi_set_flip_vertically_on_load(true);
+Image::Image(const std::string& file_path, bool flip_vertical) {
+    stbi_set_flip_vertically_on_load(flip_vertical);
     int x, y, n;
     this->image_data = stbi_load(file_path.c_str(), &x, &y, &n, 0);
     this->width = x;
