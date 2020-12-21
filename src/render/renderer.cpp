@@ -11,7 +11,7 @@ const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100
 
 Renderer::Renderer() {
     glewInit(); // Needs to be after the glfw context creation
-    // TODO @CLEANUP: This looks stupid. We're doing this stuff on a variable declaration
+    // TODO @CLEANUP: This looks stupid. We're doing this stuff on a variable declaration in main()
     // Would look better in an Init function or something.
     glViewport(0, 0, window_width, window_height);
     glEnable(GL_DEPTH_TEST);
@@ -32,6 +32,8 @@ Renderer::Renderer() {
     this->world_shader.set_int("u_shadowmap_directional", 1);
     this->world_shader.set_mat4("u_projection", perspective);
     this->world_shader.set_mat4("u_model", Matrix4::identity());
+
+    this->skybox = Skybox("assets/skybox/gehenna", perspective);
 }
 
 std::vector<Material> load_mtl_file(const std::string& file_path) {
@@ -124,7 +126,21 @@ void Renderer::render(const Matrix4& player_view_matrix) {
         ru.render();
     }
 
-    // TODO @TASK: Skybox
+    this->skybox.shader.use();
+    glDepthFunc(GL_LEQUAL);
+    Matrix4 skybox_view = player_view_matrix.transposed();
+    //skybox_view.data[0 * 4 + 3] = 0.0f;
+    //skybox_view.data[1 * 4 + 3] = 0.0f;
+    //skybox_view.data[2 * 4 + 3] = 0.0f;
+    //skybox_view.data[3 * 4 + 3] = 0.0f;
+    this->skybox.shader.set_mat4("u_view", skybox_view); // suspicious
+    glBindVertexArray(this->skybox.vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->skybox.cubemap_handle);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
+
     // TODO @TASK: Point shadows
     // TODO @TASK: Low-res effect
     // TODO @TASK: Text rendering

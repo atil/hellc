@@ -110,6 +110,17 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
 
     return m;
 }
+Matrix4 Matrix4::transposed() const {
+    Matrix4 m{ 0 };
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            m.data[j * 4 + i] = data[i * 4 + j];
+        }
+    }
+
+    return m;
+}
 
 Matrix4 Matrix4::look_at(const Vector3& eye, const Vector3& center, const Vector3& up) {
     Matrix4 m{ 0 };

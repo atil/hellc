@@ -86,10 +86,23 @@ struct DirectionalLight {
     ~DirectionalLight();
 };
 
+struct Skybox {
+    Shader shader;
+    tex_handle_t cubemap_handle;
+    buffer_handle_t vao;
+    buffer_handle_t vbo;
+
+    Skybox() = default;
+    explicit Skybox(const std::string& skybox_path, const Matrix4& projection);
+    Skybox& operator=(Skybox&& other) noexcept;
+    ~Skybox();
+};
+
 class Renderer {
     std::vector<RenderUnit> render_units;
     Shader world_shader;
     DirectionalLight directional_light;
+    Skybox skybox;
 
 public:
     Renderer();

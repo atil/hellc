@@ -14,6 +14,8 @@ void check_gl_error_shader(const std::string& tag) {
     }
 }
 
+constexpr shader_handle_t invalid_shader = 0;
+
 shader_handle_t load_shader(const std::string& header, const std::string& program_string, int shader_type) {
     const std::string shader_string = header + program_string;
     const char* cstr = shader_string.c_str();
@@ -36,7 +38,7 @@ shader_handle_t load_shader(const std::string& header, const std::string& progra
         std::cout << log << std::endl;
         free(log);
         glDeleteShader(shader_id);
-        return -1;
+        return invalid_shader;
     }
 
     return shader_id;
@@ -57,6 +59,10 @@ Shader::Shader(const std::string& file_path) {
     const shader_handle_t vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
     const shader_handle_t frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
 
+    if (vert_shader == invalid_shader || frag_shader == invalid_shader) {
+        return; // The game is gonna die anyway
+    }
+
     const shader_handle_t shader_program = glCreateProgram();
     glAttachShader(shader_program, frag_shader);
     glAttachShader(shader_program, vert_shader);
@@ -70,7 +76,7 @@ Shader::Shader(const std::string& file_path) {
     glGetProgramiv(shader_program, GL_LINK_STATUS, &is_success);
     if (is_success == GL_FALSE) {
 
-        int log_length;
+        GLint log_length;
         glGetShaderiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
 
         char* log = static_cast<char*>(malloc(log_length));
