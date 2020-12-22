@@ -39,13 +39,6 @@ public:
     ~Shader();
 };
 
-struct Material {
-    std::string name;
-    std::string diffuse_texture_name;
-    float diffuse[3]{ 0 };
-    float transparency { 0 };
-};
-
 struct Image {
     int width;
     int height;

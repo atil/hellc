@@ -22,8 +22,15 @@ struct ObjSubmodelData {
     }
 };
 
+struct Material {
+    std::string name;
+    std::string diffuse_texture_name;
+    float diffuse[3]{ 0 };
+    float transparency { 0 };
+};
+
 struct ObjModelData {
-    std::string mtllib_path;
+    std::vector<Material> materials;
 
     std::vector<Vector3> position_data;
     std::vector<Vector2> uv_data;

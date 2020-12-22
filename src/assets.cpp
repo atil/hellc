@@ -5,6 +5,54 @@
 #include <cstdio>
 #include <sstream>
 
+std::vector<Material> load_mtl_file(const std::string& file_path) {
+    std::vector<Material> materials;
+
+    std::ifstream stream(file_path);
+
+    if (!stream.is_open()) {
+        std::cout << "Error opening mtl file: " << file_path << std::endl;
+        return materials;
+    }
+
+    std::string line;
+    std::string command;
+    while (std::getline(stream, line)) {
+        if (line.find("newmtl") != 0) {
+            continue; // Start parsing from here
+        }
+
+        Material m;
+        std::istringstream line_stream;
+
+        line_stream.str(line);
+        line_stream >> command >> m.name; // newmtl
+
+        while (!line.empty()) {
+            std::getline(stream, line);
+            line_stream.clear();
+            line_stream.str(line);
+
+            if (line.find("map_Kd") == 0) {
+                line_stream >> command >> m.diffuse_texture_name; // map_Kd
+            }
+            else if (line.find("Kd") == 0) {
+                float d0, d1, d2;
+                line_stream >> command >> d0 >> d1 >> d2; // Kd
+                m.diffuse[0] = d0;
+                m.diffuse[1] = d1;
+                m.diffuse[2] = d2;
+            }
+            else if (line.find('d') == 0) {
+                line_stream >> command >> m.transparency; // d
+            }
+        }
+        materials.push_back(m);
+    }
+
+    return materials;
+}
+
 ObjModelData::ObjModelData(const std::string& file_path) {
     std::ifstream stream(file_path);
     if (!stream.is_open()) {
@@ -26,7 +74,9 @@ ObjModelData::ObjModelData(const std::string& file_path) {
     line_stream >> command >> mtllib_name;
     mtllib_name = mtllib_name.substr(2); // Remove the ./ in the beginning
     size_t slash_index = file_path.find_last_of('/');
-    this->mtllib_path = file_path.substr(0, slash_index) + "/" + mtllib_name;
+    std::string mtllib_path = file_path.substr(0, slash_index) + "/" + mtllib_name;
+
+    this->materials = load_mtl_file(mtllib_path);
 
     ObjSubmodelData current_submodel;
     while (std::getline(stream, line)) {
@@ -35,7 +85,9 @@ ObjModelData::ObjModelData(const std::string& file_path) {
 
         if (line.find('#') == 0) {
             continue;
-        } else if (line.find("vt") == 0) {
+        }
+
+        if (line.find("vt") == 0) {
             float u, v;
             line_stream >> command >> u >> v;
             this->uv_data.emplace_back(u, v);
