@@ -210,6 +210,7 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\render\render.h" />
+    <ClInclude Include="src\render\render_debug.h" />
     <ClInclude Include="src\vector3.h" />
     <ClInclude Include="src\world\geom.h" />
     <ClInclude Include="src\world\world.h" />
@@ -218,6 +219,7 @@
     <None Include="src\render\shader\world.glsl" />
     <None Include="src\render\shader\shadowmap_depth_directional.glsl" />
     <None Include="src\render\shader\skybox.glsl" />
+    <None Include="src\render\shader\shadowmap_depth_point.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />

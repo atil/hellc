@@ -1,5 +1,6 @@
 #include "world.h"
 
+// TODO @CLEANUP: Could move this to physics.cpp
 StaticCollider::StaticCollider(const ObjModelData& obj_data) {
     const std::vector<Vector3>& position_data = obj_data.position_data;
 
@@ -13,9 +14,5 @@ StaticCollider::StaticCollider(const ObjModelData& obj_data) {
             this->triangles.emplace_back(p0, p1, p2);
         }
     }
-}
-
-const std::vector<Triangle>& StaticCollider::get_triangles() const {
-    return this->triangles;
 }
 

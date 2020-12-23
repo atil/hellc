@@ -6,13 +6,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include "render.h"
-
-void check_gl_error_shader(const std::string& tag) {
-    const int error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "Shader GL error [" << tag << "] error code: [" << error << "]" << std::endl;
-    }
-}
+#include "render_debug.h"
 
 constexpr shader_handle_t invalid_shader = 0;
 
@@ -48,7 +42,7 @@ Shader::Shader(const std::string& file_path) {
     const std::ifstream shader_stream(file_path);
     if (!shader_stream.is_open()) {
         std::cout << "Failed to open shader file: " << file_path << std::endl;
-        this->shader_program_handle = -1;
+        this->shader_program_handle = invalid_shader;
         return;
     }
 
@@ -58,14 +52,23 @@ Shader::Shader(const std::string& file_path) {
 
     const shader_handle_t vert_shader = load_shader("#version 450\n#define VERTEX\n", program_string, GL_VERTEX_SHADER);
     const shader_handle_t frag_shader = load_shader("#version 450\n#define FRAGMENT\n", program_string, GL_FRAGMENT_SHADER);
+    shader_handle_t geom_shader(invalid_shader);
+    const bool has_geom_shader = program_string.find("#ifdef GEOMETRY") != std::string::npos;
+    if (has_geom_shader) {
+         geom_shader = load_shader("#version 450\n#define GEOMETRY\n", program_string, GL_GEOMETRY_SHADER);
+    }
 
-    if (vert_shader == invalid_shader || frag_shader == invalid_shader) {
+    if (vert_shader == invalid_shader || frag_shader == invalid_shader
+         && (has_geom_shader && geom_shader == invalid_shader)) {
         return; // The game is gonna die anyway
     }
 
     const shader_handle_t shader_program = glCreateProgram();
     glAttachShader(shader_program, frag_shader);
     glAttachShader(shader_program, vert_shader);
+    if (has_geom_shader && geom_shader != invalid_shader) {
+        glAttachShader(shader_program, geom_shader);
+    }
     glLinkProgram(shader_program);
 
     glDeleteShader(vert_shader);
@@ -91,7 +94,7 @@ Shader::Shader(const std::string& file_path) {
     }
 
     this->shader_program_handle = shader_program;
-    check_gl_error_shader("shader_init");
+    check_gl_error("shader_init");
 }
 
 Shader& Shader::operator=(Shader&& other) noexcept {

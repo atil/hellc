@@ -1,13 +1,37 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include "render.h"
+#include "render_debug.h"
 #include "../config.h"
 
 constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
 const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100.0f);
+
+void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_handle_t& fbo) {
+
+    constexpr int point_light_count = 1; // @TEMP
+    
+    glGenTextures(1, &cubemap_handle);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, cubemap_handle);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, shadowmap_size, shadowmap_size,
+        6 * point_light_count, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    //glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, 0);
+
+    check_gl_error("point_light_cubemap");
+
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubemap_handle, 0);
+    glReadBuffer(GL_NONE);
+    glDrawBuffer(GL_NONE);
+    check_gl_framebuffer_complete("point_light_fbo");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 Renderer::Renderer() {
     glewInit(); // Needs to be after the glfw context creation
@@ -34,8 +58,15 @@ Renderer::Renderer() {
     this->world_shader.set_mat4("u_model", Matrix4::identity());
 
     this->skybox = Skybox("assets/skybox/gehenna", perspective);
-}
 
+    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo);
+
+    PointLightProperties props;
+    props.position = Vector3(24.0f, 2.0f, -3.0f);
+    props.intensity = 2.0f;
+    props.attenuation = 1.0f;
+    this->point_light = PointLight(props, 0);
+}
 
 void Renderer::register_obj(const ObjModelData& obj_data) {
 
@@ -55,12 +86,22 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
 
 void Renderer::render(const Matrix4& player_view_matrix) {
     
-    // Directional shadows
-    this->directional_light.shader.use();
+    // Directional shadow
     glViewport(0, 0, shadowmap_size, shadowmap_size);
     glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light.fbo);
     glDisable(GL_CULL_FACE); // Write to depth buffer with all faces. Otherwise the backfaces won't cause shadows
     glClear(GL_DEPTH_BUFFER_BIT);
+    this->directional_light.shader.use();
+    for (const RenderUnit& ru : render_units) {
+        ru.render();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Point shadow
+    glBindFramebuffer(GL_FRAMEBUFFER, this->point_light_fbo);
+    glDisable(GL_CULL_FACE); // Can we do this before the framebuffer bind? Also for the directional light
+    glClear(GL_DEPTH_BUFFER_BIT);
+    this->point_light.shader.use();
     for (const RenderUnit& ru : render_units) {
         ru.render();
     }
@@ -84,4 +125,9 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     // TODO @TASK: Point shadows
     // TODO @TASK: Low-res effect
     // TODO @TASK: Text rendering
+}
+
+Renderer::~Renderer() {
+    glDeleteTextures(1, &this->point_light_cubemap_handle);
+    glDeleteBuffers(1, &this->point_light_fbo);
 }

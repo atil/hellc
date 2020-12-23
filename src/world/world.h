@@ -55,11 +55,9 @@ struct PlayerShape {
     }
 };
 
-class StaticCollider {
+struct StaticCollider {
     std::vector<Triangle> triangles;
-public:
     explicit StaticCollider(const ObjModelData& obj_data);
-    const std::vector<Triangle>& get_triangles() const;
 };
 
 struct Physics {

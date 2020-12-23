@@ -60,7 +60,7 @@ Vector3 Physics::compute_penetrations(const Vector3& player_pos, const std::vect
     PlayerShape player_shape(player_pos, player_height, player_radius);
     Vector3 total_displacement;
     for (const StaticCollider& static_collider : static_colliders) {
-        for (const Triangle& triangle : static_collider.get_triangles()) {
+        for (const Triangle& triangle : static_collider.triangles) {
             Vector3 penet;
             if (resolve_penetration(player_shape, triangle, penet)) {
                 total_displacement += penet;
@@ -99,7 +99,7 @@ bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_
 
 bool Physics::raycast(const Ray& ray, float max_dist, const std::vector<StaticCollider>& static_colliders, Ray& out) {
     for (const StaticCollider& collider : static_colliders) {
-        for (const Triangle& triangle : collider.get_triangles()) {
+        for (const Triangle& triangle : collider.triangles) {
 
             // Ray-triangle check
             const float dir_dot_normal = Vector3::dot(ray.direction, triangle.normal);

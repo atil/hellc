@@ -1,5 +1,5 @@
-#include <GL/glew.h>
 #define GLEW_STATIC
+#include <GL/glew.h>
 #include "render.h"
 
 constexpr float skybox_vertex_data[108] = {

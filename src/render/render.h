@@ -7,8 +7,8 @@
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
 constexpr float far_plane = 100.0f;
-constexpr float directional_shadow_near_plane = 0.001f;
-constexpr float directional_shadow_far_plane = 1000.0f;
+constexpr float shadow_near_plane = 0.001f;
+constexpr float shadow_far_plane = 1000.0f;
 
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
@@ -68,6 +68,7 @@ public:
     void render() const;
 };
 
+// TODO @TASK: Directional light color
 struct DirectionalLight {
     Shader shader;
     buffer_handle_t fbo{ default_buffer_handle };
@@ -81,6 +82,21 @@ struct DirectionalLight {
     DirectionalLight& operator=(DirectionalLight& other) = delete;
     DirectionalLight& operator=(DirectionalLight&& other) noexcept;
     ~DirectionalLight();
+};
+
+struct PointLightProperties {
+    Vector3 position;
+    float intensity;
+    float attenuation;
+};
+
+struct PointLight {
+    Shader shader;
+
+    PointLightProperties properties;
+    PointLight() = default;
+    PointLight(const PointLightProperties& params, int light_index);
+    PointLight& operator=(PointLight&& other) noexcept;
 };
 
 class Skybox {
@@ -106,10 +122,17 @@ class Renderer {
     DirectionalLight directional_light;
     Skybox skybox;
 
+    PointLight point_light;
+    tex_handle_t point_light_cubemap_handle { default_tex_handle };
+    buffer_handle_t point_light_fbo { default_buffer_handle};
+
 public:
     Renderer();
+    ~Renderer();
 
     void register_obj(const ObjModelData& obj_data);
     void render(const Matrix4& player_view_matrix);
+
+
 };
 

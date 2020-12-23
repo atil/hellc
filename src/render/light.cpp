@@ -1,10 +1,16 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
+#include <iostream>
 #include "render.h"
+#include "render_debug.h"
+
+//
+// Directional light
+//
 
 DirectionalLight::DirectionalLight(const Vector3& dir) {
     constexpr float s = 100.0f; // Ortho volume size
-    const Matrix4 proj = Matrix4::ortho(-s, s, -s, s, directional_shadow_near_plane, directional_shadow_far_plane);
+    const Matrix4 proj = Matrix4::ortho(-s, s, -s, s, shadow_near_plane, shadow_far_plane);
     const Matrix4 view = Matrix4::look_at(dir, Vector3::zero, Vector3::up);
     this->view_proj = proj * view;
 
@@ -45,4 +51,43 @@ DirectionalLight& DirectionalLight::operator=(DirectionalLight&& other) noexcept
 DirectionalLight::~DirectionalLight() {
     glDeleteFramebuffers(1, &this->fbo);
     glDeleteTextures(1, &this->depth_tex_handle);
+}
+
+//
+// Point light
+// 
+
+PointLight::PointLight(const PointLightProperties& params, int light_index) {
+    this->properties = params;
+
+    const Matrix4 proj = Matrix4::perspective(90.0f, 1.0f, shadow_near_plane, shadow_far_plane);
+
+    const Vector3 pos = params.position;
+    const Matrix4 v0 = Matrix4::look_at(pos, pos + Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
+    const Matrix4 v1 = Matrix4::look_at(pos, pos + Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
+    const Matrix4 v2 = Matrix4::look_at(pos, pos + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
+    const Matrix4 v3 = Matrix4::look_at(pos, pos + Vector3(0.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
+    const Matrix4 v4 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, -1.0f, 0.0f));
+    const Matrix4 v5 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, -1.0f, 0.0f));
+
+    this->shader = Shader("src/render/shader/shadowmap_depth_point.glsl");
+    this->shader.use();
+    this->shader.set_mat4("u_shadow_matrices[0]", proj * v0);
+    this->shader.set_mat4("u_shadow_matrices[1]", proj * v1);
+    this->shader.set_mat4("u_shadow_matrices[2]", proj * v2);
+    this->shader.set_mat4("u_shadow_matrices[3]", proj * v3);
+    this->shader.set_mat4("u_shadow_matrices[4]", proj * v4);
+    this->shader.set_mat4("u_shadow_matrices[5]", proj * v5);
+    this->shader.set_float("u_far_plane", shadow_far_plane);
+    this->shader.set_vec3("u_light_pos", pos);
+    this->shader.set_int("u_light_index", light_index);
+    this->shader.set_mat4("u_model", Matrix4::identity());
+
+    check_gl_error("point_light_ctor");
+}
+
+PointLight& PointLight::operator=(PointLight&& other) noexcept {
+    this->shader = std::move(other.shader);
+    this->properties = other.properties;
+    return *this;
 }
