@@ -9,7 +9,7 @@ const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100
 
 void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_handle_t& fbo) {
 
-    constexpr int point_light_count = 1; // @TEMP
+    constexpr int point_light_count = 1; // @CLEANUP
     
     glGenTextures(1, &cubemap_handle);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, cubemap_handle);
@@ -20,7 +20,7 @@ void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_han
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, shadowmap_size, shadowmap_size,
         6 * point_light_count, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    //glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, 0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, 0);
 
     check_gl_error("point_light_cubemap");
 
@@ -45,27 +45,37 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
+    std::unique_ptr<Shader> a = std::make_unique<Shader>("asdf");
+
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = DirectionalLight(directional_light_dir);
 
-    this->world_shader = Shader("src/render/shader/world.glsl");
-    this->world_shader.use();
-    this->world_shader.set_vec3("u_directional_light_dir", directional_light_dir);
-    this->world_shader.set_mat4("u_directional_light_vp", this->directional_light.view_proj);
-    this->world_shader.set_int("u_texture", 0);
-    this->world_shader.set_int("u_shadowmap_directional", 1);
-    this->world_shader.set_mat4("u_projection", perspective);
-    this->world_shader.set_mat4("u_model", Matrix4::identity());
+    PointLightProperties props;
+    props.position = Vector3(24.0f, 2.0f, -3.0f);
+    props.intensity = 16.0f;
+    props.attenuation = 0.25f;
+    this->point_light = PointLight(props, 0);
+    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo);
+
+    this->world_shader = std::make_unique<Shader>("src/render/shader/world.glsl");
+    this->world_shader->use();
+    this->world_shader->set_int("u_texture", 0);
+    this->world_shader->set_mat4("u_projection", perspective);
+    this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP
+                      
+    this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
+    this->world_shader->set_mat4("u_directional_light_vp", this->directional_light.view_proj);
+    this->world_shader->set_int("u_shadowmap_directional", 1);
+                      
+    this->world_shader->set_int("u_shadowmaps_point", 2);
+    this->world_shader->set_int("u_point_light_count", 1); // @CLEANUP
+    this->world_shader->set_vec3("u_point_lights[0].position", this->point_light.properties.position); // @CLEANUP
+    this->world_shader->set_float("u_point_lights[0].intensity", this->point_light.properties.intensity); // @CLEANUP
+    this->world_shader->set_float("u_point_lights[0].attenuation", this->point_light.properties.attenuation); // @CLEANUP
+    this->world_shader->set_float("u_far_plane", shadow_far_plane);
 
     this->skybox = Skybox("assets/skybox/gehenna", perspective);
 
-    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo);
-
-    PointLightProperties props;
-    props.position = Vector3(24.0f, 2.0f, -3.0f);
-    props.intensity = 2.0f;
-    props.attenuation = 1.0f;
-    this->point_light = PointLight(props, 0);
 }
 
 void Renderer::register_obj(const ObjModelData& obj_data) {
@@ -111,10 +121,12 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     // Draw to screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
-    this->world_shader.use();
-    this->world_shader.set_mat4("u_view", player_view_matrix);
+    this->world_shader->use();
+    this->world_shader->set_mat4("u_view", player_view_matrix);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, this->directional_light.depth_tex_handle);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, this->point_light_cubemap_handle);
     for (const RenderUnit& ru : this->render_units) {
         ru.render();
     }

@@ -73,6 +73,9 @@ Shader::Shader(const std::string& file_path) {
 
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
+    if (has_geom_shader && geom_shader != invalid_shader) {
+        glDeleteShader(geom_shader);
+    }
 
     // Check for link errors
     int is_success;
@@ -89,7 +92,7 @@ Shader::Shader(const std::string& file_path) {
 
         free(log);
         glDeleteShader(shader_program);
-        this->shader_program_handle = -1;
+        this->shader_program_handle = invalid_shader;
         return;
     }
 

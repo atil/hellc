@@ -42,6 +42,18 @@ uniform sampler2D u_texture;
 uniform sampler2D u_shadowmap_directional;
 uniform vec3 u_directional_light_dir;
 
+// Point light
+#define MAX_LIGHT_COUNT 10
+struct PointLight {
+    vec3 position;
+    float intensity;
+    float attenuation;
+};
+uniform samplerCubeArray u_shadowmaps_point;
+uniform PointLight u_point_lights[MAX_LIGHT_COUNT];
+uniform int u_point_light_count;
+uniform float u_far_plane;
+
 out vec4 frag_color;
 
 float get_t_shadow_directional() {
@@ -81,6 +93,44 @@ float get_t_shadow_directional() {
 //    return shadow / ((DIRECTIONAL_LIGHT_SAMPLES + 2) * (DIRECTIONAL_LIGHT_SAMPLES + 2));
 } 
 
+vec3 point_shadow_sample_offset_directions[20] = vec3[] (
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);  
+
+#define POINT_SHADOW_SOFTNESS_WITH_DISTANCE 0.005
+
+float get_frag_brightness_from_light(PointLight light, int light_index) {
+    float t_shadow = 0.0;
+    vec3 light_to_frag = v2f_frag_world_pos - light.position;
+    float light_to_frag_dist = length(light_to_frag) - 0.0005; // bias
+
+    // Larger sample distance as the fragment is further away from the light
+    float disk_radius = POINT_SHADOW_SOFTNESS_WITH_DISTANCE * light_to_frag_dist;
+    for (int i = 0; i < 20; i++) {
+        vec3 sample_dir = light_to_frag + point_shadow_sample_offset_directions[i] * disk_radius;
+        float depth_in_cubemap = texture(u_shadowmaps_point, vec4(sample_dir, light_index)).r;
+        depth_in_cubemap *= u_far_plane;
+        if (light_to_frag_dist > depth_in_cubemap) {
+            t_shadow += 1.0;
+        }
+    }
+    t_shadow = t_shadow / 20.0;
+
+
+    vec3 frag_to_point_light = light.position - v2f_frag_world_pos;
+    float alignment_with_point_light = max(dot(v2f_normal, normalize(frag_to_point_light)), 0.0);
+    float distance_to_point_light = length(frag_to_point_light);
+
+    float max_brightness = alignment_with_point_light * light.intensity
+        / (light.attenuation * distance_to_point_light);
+
+    return mix(max_brightness, 0.0, t_shadow);
+}
+
 void main() {
     float tmp = v2f_uv.x * v2f_normal.x * 0.00001f; // TODO @CLEANUP: Is this needed?
 
@@ -88,11 +138,16 @@ void main() {
     vec2 tmp_uv_normalized = v2f_uv / uv_max;
 
     vec4 tex_color = texture(u_texture, v2f_uv);
-    vec4 shadowed_tex_color = vec4(tex_color.rgb * 0.2, 1.0);
+    vec4 shadowed_tex_color = vec4(tex_color.rgb * 0.05, 1.0);
 
     float brightness = 0.0;
     float t = get_t_shadow_directional(); // 1 means shadow
     brightness += mix(1.0, 0.0, t);
+
+    for (int i = 0; i < u_point_light_count; i++) {
+        brightness += get_frag_brightness_from_light(u_point_lights[i], i);
+    }
     frag_color = mix(shadowed_tex_color, tex_color, brightness);
+
 };
 #endif

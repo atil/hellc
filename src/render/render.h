@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <string>
 #include "../assets.h"
@@ -6,7 +7,7 @@
 
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
-constexpr float far_plane = 100.0f;
+constexpr float far_plane = 1000.0f;
 constexpr float shadow_near_plane = 0.001f;
 constexpr float shadow_far_plane = 1000.0f;
 
@@ -118,7 +119,7 @@ public:
 
 class Renderer {
     std::vector<RenderUnit> render_units;
-    Shader world_shader;
+    std::unique_ptr<Shader> world_shader;
     DirectionalLight directional_light;
     Skybox skybox;
 
