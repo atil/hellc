@@ -44,22 +44,10 @@ Skybox::Skybox(const std::string& skybox_path, const Matrix4& projection) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    this->shader = Shader("src/render/shader/skybox.glsl");
-    this->shader.use();
-    this->shader.set_mat4("u_projection", projection);
-    this->shader.set_int("u_skybox", 0);
-}
-
-Skybox& Skybox::operator=(Skybox&& other) noexcept {
-    this->shader = std::move(other.shader);
-
-    this->cubemap_handle = other.cubemap_handle;
-    other.cubemap_handle = 0;
-    this->vao = other.vao;
-    other.vao = 0;
-    this->vbo = other.vbo;
-    other.vbo = 0;
-    return *this;
+    this->shader = std::make_unique<Shader>("src/render/shader/skybox.glsl");
+    this->shader->use();
+    this->shader->set_mat4("u_projection", projection);
+    this->shader->set_int("u_skybox", 0);
 }
 
 Skybox::~Skybox() {
@@ -69,13 +57,13 @@ Skybox::~Skybox() {
 }
 
 void Skybox::render(const Matrix4& player_view_matrix) const {
-    this->shader.use();
+    this->shader->use();
     glDepthFunc(GL_LEQUAL);
     Matrix4 skybox_view = player_view_matrix;
     skybox_view.data[3 * 4 + 0] = 0.0f; // Clear translation row
     skybox_view.data[3 * 4 + 1] = 0.0f;
     skybox_view.data[3 * 4 + 2] = 0.0f;
-    this->shader.set_mat4("u_view", skybox_view);
+    this->shader->set_mat4("u_view", skybox_view);
     glBindVertexArray(this->vao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap_handle);

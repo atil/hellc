@@ -1,6 +1,5 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include <iostream>
 #include "render.h"
 #include "render_debug.h"
 
@@ -14,10 +13,10 @@ DirectionalLight::DirectionalLight(const Vector3& dir) {
     const Matrix4 view = Matrix4::look_at(dir, Vector3::zero, Vector3::up);
     this->view_proj = proj * view;
 
-    this->shader = Shader("src/render/shader/shadowmap_depth_directional.glsl");
-    this->shader.use();
-    this->shader.set_mat4("u_light_vp", this->view_proj);
-    this->shader.set_mat4("u_model", Matrix4::identity());
+    this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_directional.glsl");
+    this->shader->use();
+    this->shader->set_mat4("u_light_vp", this->view_proj);
+    this->shader->set_mat4("u_model", Matrix4::identity());
 
     glGenTextures(1, &this->depth_tex_handle);
     glBindTexture(GL_TEXTURE_2D, this->depth_tex_handle);
@@ -36,16 +35,8 @@ DirectionalLight::DirectionalLight(const Vector3& dir) {
     glReadBuffer(GL_NONE);
     glDrawBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
 
-DirectionalLight& DirectionalLight::operator=(DirectionalLight&& other) noexcept {
-    this->shader = std::move(other.shader);
-    this->fbo = other.fbo;
-    other.fbo = 0;
-    this->depth_tex_handle = other.depth_tex_handle;
-    other.depth_tex_handle = 0;
-    this->view_proj = other.view_proj;
-    return *this;
+    check_gl_error("directional_light");
 }
 
 DirectionalLight::~DirectionalLight() {
@@ -70,24 +61,19 @@ PointLight::PointLight(const PointLightProperties& params, int light_index) {
     const Matrix4 v4 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, -1.0f, 0.0f));
     const Matrix4 v5 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, -1.0f, 0.0f));
 
-    this->shader = Shader("src/render/shader/shadowmap_depth_point.glsl");
-    this->shader.use();
-    this->shader.set_mat4("u_shadow_matrices[0]", proj * v0);
-    this->shader.set_mat4("u_shadow_matrices[1]", proj * v1);
-    this->shader.set_mat4("u_shadow_matrices[2]", proj * v2);
-    this->shader.set_mat4("u_shadow_matrices[3]", proj * v3);
-    this->shader.set_mat4("u_shadow_matrices[4]", proj * v4);
-    this->shader.set_mat4("u_shadow_matrices[5]", proj * v5);
-    this->shader.set_float("u_far_plane", shadow_far_plane);
-    this->shader.set_vec3("u_light_pos", pos);
-    this->shader.set_int("u_light_index", light_index);
-    this->shader.set_mat4("u_model", Matrix4::identity());
+    this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_point.glsl");
+    this->shader->use();
+    this->shader->set_mat4("u_shadow_matrices[0]", proj * v0);
+    this->shader->set_mat4("u_shadow_matrices[1]", proj * v1);
+    this->shader->set_mat4("u_shadow_matrices[2]", proj * v2);
+    this->shader->set_mat4("u_shadow_matrices[3]", proj * v3);
+    this->shader->set_mat4("u_shadow_matrices[4]", proj * v4);
+    this->shader->set_mat4("u_shadow_matrices[5]", proj * v5);
+    this->shader->set_float("u_far_plane", shadow_far_plane);
+    this->shader->set_vec3("u_light_pos", pos);
+    this->shader->set_int("u_light_index", light_index);
+    this->shader->set_mat4("u_model", Matrix4::identity());
 
     check_gl_error("point_light_ctor");
 }
 
-PointLight& PointLight::operator=(PointLight&& other) noexcept {
-    this->shader = std::move(other.shader);
-    this->properties = other.properties;
-    return *this;
-}

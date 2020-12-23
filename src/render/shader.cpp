@@ -100,12 +100,6 @@ Shader::Shader(const std::string& file_path) {
     check_gl_error("shader_init");
 }
 
-Shader& Shader::operator=(Shader&& other) noexcept {
-    this->shader_program_handle = other.shader_program_handle;
-    other.shader_program_handle = 0; // No valid shader gets this value
-    return *this;
-}
-
 void Shader::use() const {
     glUseProgram(this->shader_program_handle);
 }

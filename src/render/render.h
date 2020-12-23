@@ -32,10 +32,6 @@ public:
 
     explicit Shader() = default;
     explicit Shader(const std::string& file_path);
-    Shader(Shader& other) = delete;
-    Shader(Shader&& other) = delete;
-    Shader& operator=(Shader& other) = delete;
-    Shader& operator=(Shader&& other) noexcept;
 
     ~Shader();
 };
@@ -53,7 +49,7 @@ struct Image {
     ~Image();
 };
 
-class RenderUnit {  // NOLINT(cppcoreguidelines-special-member-functions): This is used as a template type for a vector
+class RenderUnit {
     buffer_handle_t vao{ default_buffer_handle };
     buffer_handle_t vbo{ default_buffer_handle };
     buffer_handle_t ibo{ default_buffer_handle };
@@ -71,17 +67,13 @@ public:
 
 // TODO @TASK: Directional light color
 struct DirectionalLight {
-    Shader shader;
+    std::unique_ptr<Shader> shader;
     buffer_handle_t fbo{ default_buffer_handle };
     Matrix4 view_proj{ 0 };
     tex_handle_t depth_tex_handle{ default_tex_handle };
 
     DirectionalLight() = default;
     explicit DirectionalLight(const Vector3& dir);
-    DirectionalLight(const DirectionalLight& other) = delete;
-    DirectionalLight(const DirectionalLight&& other) = delete;
-    DirectionalLight& operator=(DirectionalLight& other) = delete;
-    DirectionalLight& operator=(DirectionalLight&& other) noexcept;
     ~DirectionalLight();
 };
 
@@ -92,36 +84,29 @@ struct PointLightProperties {
 };
 
 struct PointLight {
-    Shader shader;
-
+    std::unique_ptr<Shader> shader;
     PointLightProperties properties;
     PointLight() = default;
     PointLight(const PointLightProperties& params, int light_index);
-    PointLight& operator=(PointLight&& other) noexcept;
 };
 
-class Skybox {
-    Shader shader;
+struct Skybox {
+    std::unique_ptr<Shader> shader;
     tex_handle_t cubemap_handle{ default_tex_handle };
     buffer_handle_t vao{ default_buffer_handle };
     buffer_handle_t vbo{ default_buffer_handle };
 
-public:
     void render(const Matrix4& player_view_matrix) const;
     Skybox() = default;
     explicit Skybox(const std::string& skybox_path, const Matrix4& projection);
-    Skybox(const Skybox& other) = delete;
-    Skybox(const Skybox&& other) = delete;
-    Skybox& operator=(Skybox&& other) noexcept;
-    Skybox& operator=(Skybox& other) = delete;
     ~Skybox();
 };
 
 class Renderer {
-    std::vector<RenderUnit> render_units;
+    std::vector<std::unique_ptr<RenderUnit>> render_units;
     std::unique_ptr<Shader> world_shader;
-    DirectionalLight directional_light;
-    Skybox skybox;
+    std::unique_ptr<DirectionalLight> directional_light;
+    std::unique_ptr<Skybox> skybox;
 
     PointLight point_light;
     tex_handle_t point_light_cubemap_handle { default_tex_handle };
@@ -133,7 +118,6 @@ public:
 
     void register_obj(const ObjModelData& obj_data);
     void render(const Matrix4& player_view_matrix);
-
 
 };
 

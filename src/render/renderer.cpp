@@ -45,16 +45,15 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
-    std::unique_ptr<Shader> a = std::make_unique<Shader>("asdf");
-
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
-    this->directional_light = DirectionalLight(directional_light_dir);
+    this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
 
     PointLightProperties props;
     props.position = Vector3(24.0f, 2.0f, -3.0f);
     props.intensity = 16.0f;
     props.attenuation = 0.25f;
     this->point_light = PointLight(props, 0);
+    check_gl_error("test");
     create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo);
 
     this->world_shader = std::make_unique<Shader>("src/render/shader/world.glsl");
@@ -64,7 +63,7 @@ Renderer::Renderer() {
     this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP
                       
     this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
-    this->world_shader->set_mat4("u_directional_light_vp", this->directional_light.view_proj);
+    this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
                       
     this->world_shader->set_int("u_shadowmaps_point", 2);
@@ -74,7 +73,7 @@ Renderer::Renderer() {
     this->world_shader->set_float("u_point_lights[0].attenuation", this->point_light.properties.attenuation); // @CLEANUP
     this->world_shader->set_float("u_far_plane", shadow_far_plane);
 
-    this->skybox = Skybox("assets/skybox/gehenna", perspective);
+    this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
 
 }
 
@@ -83,12 +82,13 @@ void Renderer::register_obj(const ObjModelData& obj_data) {
     // NOTE @CPP: This is important. The vector must not reallocate memory during the loop
     // Otherwise it calls the dtors (and I think ctors afterwards) of the RenderUnits
     // which we don't want because we do GL stuff in there
-    this->render_units.reserve(obj_data.submodel_data.size());
+    //this->render_units.reserve(obj_data.submodel_data.size());
 
     for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : obj_data.materials) {
             if (m.name == obj_face_data.material_name) {
-                this->render_units.emplace_back(m, obj_face_data, obj_data);
+                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data);
+                this->render_units.push_back(std::move(ru));
             }
         }
     }
@@ -98,12 +98,12 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     
     // Directional shadow
     glViewport(0, 0, shadowmap_size, shadowmap_size);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light->fbo);
     glDisable(GL_CULL_FACE); // Write to depth buffer with all faces. Otherwise the backfaces won't cause shadows
     glClear(GL_DEPTH_BUFFER_BIT);
-    this->directional_light.shader.use();
-    for (const RenderUnit& ru : render_units) {
-        ru.render();
+    this->directional_light->shader->use();
+    for (auto& ru : this->render_units) {
+        ru->render();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -111,9 +111,9 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBindFramebuffer(GL_FRAMEBUFFER, this->point_light_fbo);
     glDisable(GL_CULL_FACE); // Can we do this before the framebuffer bind? Also for the directional light
     glClear(GL_DEPTH_BUFFER_BIT);
-    this->point_light.shader.use();
-    for (const RenderUnit& ru : render_units) {
-        ru.render();
+    this->point_light.shader->use();
+    for (auto& ru : render_units) {
+        ru->render();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_CULL_FACE);
@@ -124,15 +124,27 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     this->world_shader->use();
     this->world_shader->set_mat4("u_view", player_view_matrix);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, this->directional_light.depth_tex_handle);
+    glBindTexture(GL_TEXTURE_2D, this->directional_light->depth_tex_handle);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, this->point_light_cubemap_handle);
-    for (const RenderUnit& ru : this->render_units) {
-        ru.render();
+    for (auto& ru : this->render_units) {
+        ru->render();
     }
     
     // Skybox: fill fragments with depth == 1
-    this->skybox.render(player_view_matrix);
+    this->skybox->shader->use();
+    glDepthFunc(GL_LEQUAL);
+    Matrix4 skybox_view = player_view_matrix;
+    skybox_view.data[3 * 4 + 0] = 0.0f; // Clear translation row
+    skybox_view.data[3 * 4 + 1] = 0.0f;
+    skybox_view.data[3 * 4 + 2] = 0.0f;
+    this->skybox->shader->set_mat4("u_view", skybox_view);
+    glBindVertexArray(this->skybox->vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->skybox->cubemap_handle);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
 
     // TODO @TASK: Point shadows
     // TODO @TASK: Low-res effect
