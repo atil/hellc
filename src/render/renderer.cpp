@@ -7,6 +7,27 @@
 constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
 const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, near_plane, far_plane);
 
+void create_draw_fbo(buffer_handle_t& draw_fbo, tex_handle_t& draw_tex_handle, buffer_handle_t& draw_rbo) {
+
+    glGenTextures(1, &draw_tex_handle);
+    glBindTexture(GL_TEXTURE_2D, draw_tex_handle);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, draw_framebuffer_size.x, draw_framebuffer_size.y,
+        0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glGenFramebuffers(1, &draw_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, draw_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, draw_tex_handle, 0);
+
+    glGenRenderbuffers(1, &draw_rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, draw_rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, draw_framebuffer_size.x, draw_framebuffer_size.y);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, draw_rbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_handle_t& fbo, int point_light_count) {
     
     glGenTextures(1, &cubemap_handle);
@@ -43,9 +64,11 @@ Renderer::Renderer() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
 
+    create_draw_fbo(this->draw_fbo, this->draw_tex_handle, this->draw_rbo);
+
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
-// 2.73503, 3.07614, 49.1217
+
     std::unique_ptr<PointLight> point_light_0 = std::make_unique<PointLight>(Vector3(24.0f, 2.0f, -3.0f), 8.0f, 0.25f, 0);
     this->point_lights.push_back(std::move(point_light_0));
     std::unique_ptr<PointLight> point_light_1 = std::make_unique<PointLight>(Vector3(3.0f, 3.0f, 50.0f), 8.0f, 0.25f, 1);
@@ -65,7 +88,7 @@ Renderer::Renderer() {
     this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
                       
-    for (size_t i = 0; i < point_light_count; i++) {
+    for (int i = 0; i < point_light_count; i++) {
         const std::string pos_prop_name = "u_point_lights[" + std::to_string(i) + "].position";
         this->world_shader->set_vec3(pos_prop_name, this->point_lights[i]->position);
 
@@ -119,9 +142,13 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_CULL_FACE);
 
-    // Draw to screen
+
+    // Draw to backbuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, this->draw_fbo);
+    this->world_shader->use();
+    this->world_shader->set_mat4("u_view", player_view_matrix);
+    glViewport(0, 0, draw_framebuffer_size.x, draw_framebuffer_size.y);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, window_width, window_height);
     this->world_shader->use();
     this->world_shader->set_mat4("u_view", player_view_matrix);
     glActiveTexture(GL_TEXTURE1);
@@ -131,7 +158,7 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     for (auto& ru : this->render_units) {
         ru->render();
     }
-    
+
     // Skybox: fill fragments with depth == 1
     this->skybox->shader->use();
     glDepthFunc(GL_LEQUAL);
@@ -147,11 +174,22 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBindVertexArray(0);
     glDepthFunc(GL_LESS);
 
+    // Blit to screen
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, this->draw_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0, 0, draw_framebuffer_size.x, draw_framebuffer_size.y, 0, 0, window_width, window_height,
+        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
     // TODO @TASK: Low-res effect
     // TODO @TASK: Text rendering
 }
 
 Renderer::~Renderer() {
     glDeleteTextures(1, &this->point_light_cubemap_handle);
-    glDeleteBuffers(1, &this->point_light_fbo);
+    glDeleteFramebuffers(1, &this->point_light_fbo);
+
+    glDeleteTextures(1, &this->draw_tex_handle);
+    glDeleteFramebuffers(1, &this->draw_fbo);
+    glDeleteRenderbuffers(1, &this->draw_rbo);
+   
 }

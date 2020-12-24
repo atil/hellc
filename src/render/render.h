@@ -10,6 +10,7 @@ constexpr float near_plane = 0.01f;
 constexpr float far_plane = 1000.0f;
 constexpr float shadow_near_plane = 0.001f;
 constexpr float shadow_far_plane = 1000.0f;
+constexpr Vector2i draw_framebuffer_size(640, 360);
 
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
@@ -65,7 +66,6 @@ public:
     void render() const;
 };
 
-// TODO @TASK: Directional light color
 struct DirectionalLight {
     std::unique_ptr<Shader> shader;
     buffer_handle_t fbo{ default_buffer_handle };
@@ -106,6 +106,10 @@ class Renderer {
     std::vector<std::unique_ptr<PointLight>> point_lights;
     tex_handle_t point_light_cubemap_handle { default_tex_handle };
     buffer_handle_t point_light_fbo { default_buffer_handle};
+
+    buffer_handle_t draw_fbo;
+    tex_handle_t draw_tex_handle;
+    buffer_handle_t draw_rbo;
 
 public:
     Renderer();

@@ -1,4 +1,5 @@
-// TODO @NEXT: Fix multiple point lights: only the first one's shadows are cast
+// TODO @NEXT: Custom backbuffer for low-res effect
+// TODO @NEXT: Directional light color
 
 #include "render/render.h"
 #include "assets.h"

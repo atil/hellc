@@ -55,8 +55,15 @@ struct Matrix4 {
 };
 
 struct Vector2 {
-    float x;
-    float y;
+    const float x;
+    const float y;
 
     Vector2(float x_, float y_) : x(x_), y(y_) { }
+};
+
+struct Vector2i {
+    const int x;
+    const int y;
+
+    constexpr Vector2i(int x_, int y_) : x(x_), y(y_) { }
 };
