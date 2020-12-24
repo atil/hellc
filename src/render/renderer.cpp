@@ -5,11 +5,9 @@
 #include "../config.h"
 
 constexpr float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
-const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, 0.01f, 100.0f);
+const Matrix4 perspective = Matrix4::perspective(45.0f, aspect_ratio, near_plane, far_plane);
 
-void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_handle_t& fbo) {
-
-    constexpr int point_light_count = 1; // @CLEANUP
+void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_handle_t& fbo, int point_light_count) {
     
     glGenTextures(1, &cubemap_handle);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, cubemap_handle);
@@ -47,43 +45,44 @@ Renderer::Renderer() {
 
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
+// 2.73503, 3.07614, 49.1217
+    std::unique_ptr<PointLight> point_light_0 = std::make_unique<PointLight>(Vector3(24.0f, 2.0f, -3.0f), 8.0f, 0.25f, 0);
+    this->point_lights.push_back(std::move(point_light_0));
+    std::unique_ptr<PointLight> point_light_1 = std::make_unique<PointLight>(Vector3(3.0f, 3.0f, 50.0f), 8.0f, 0.25f, 1);
+    this->point_lights.push_back(std::move(point_light_1));
 
-    PointLightProperties props;
-    props.position = Vector3(24.0f, 2.0f, -3.0f);
-    props.intensity = 16.0f;
-    props.attenuation = 0.25f;
-    this->point_light = PointLight(props, 0);
-    check_gl_error("test");
-    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo);
+    const int point_light_count = static_cast<int>(this->point_lights.size());
+
+    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo, point_light_count);
 
     this->world_shader = std::make_unique<Shader>("src/render/shader/world.glsl");
     this->world_shader->use();
     this->world_shader->set_int("u_texture", 0);
     this->world_shader->set_mat4("u_projection", perspective);
-    this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP
+    this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP: A system to handle different positions of objects
                       
     this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
     this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
                       
+    for (size_t i = 0; i < point_light_count; i++) {
+        const std::string pos_prop_name = "u_point_lights[" + std::to_string(i) + "].position";
+        this->world_shader->set_vec3(pos_prop_name, this->point_lights[i]->position);
+
+        const std::string intensity_prop_name = "u_point_lights[" + std::to_string(i) + "].intensity";
+        this->world_shader->set_float(intensity_prop_name, this->point_lights[i]->intensity);
+
+        const std::string att_prop_name = "u_point_lights[" + std::to_string(i) + "].attenuation";
+        this->world_shader->set_float(att_prop_name, this->point_lights[i]->attenuation);
+    }
     this->world_shader->set_int("u_shadowmaps_point", 2);
-    this->world_shader->set_int("u_point_light_count", 1); // @CLEANUP
-    this->world_shader->set_vec3("u_point_lights[0].position", this->point_light.properties.position); // @CLEANUP
-    this->world_shader->set_float("u_point_lights[0].intensity", this->point_light.properties.intensity); // @CLEANUP
-    this->world_shader->set_float("u_point_lights[0].attenuation", this->point_light.properties.attenuation); // @CLEANUP
+    this->world_shader->set_int("u_point_light_count", point_light_count);
     this->world_shader->set_float("u_far_plane", shadow_far_plane);
 
     this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
-
 }
 
 void Renderer::register_obj(const ObjModelData& obj_data) {
-
-    // NOTE @CPP: This is important. The vector must not reallocate memory during the loop
-    // Otherwise it calls the dtors (and I think ctors afterwards) of the RenderUnits
-    // which we don't want because we do GL stuff in there
-    //this->render_units.reserve(obj_data.submodel_data.size());
-
     for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : obj_data.materials) {
             if (m.name == obj_face_data.material_name) {
@@ -111,9 +110,11 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBindFramebuffer(GL_FRAMEBUFFER, this->point_light_fbo);
     glDisable(GL_CULL_FACE); // Can we do this before the framebuffer bind? Also for the directional light
     glClear(GL_DEPTH_BUFFER_BIT);
-    this->point_light.shader->use();
-    for (auto& ru : render_units) {
-        ru->render();
+    for (auto& point_light : this->point_lights) {
+        point_light->shader->use();
+        for (auto& ru : render_units) {
+            ru->render();
+        }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_CULL_FACE);
@@ -146,7 +147,6 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBindVertexArray(0);
     glDepthFunc(GL_LESS);
 
-    // TODO @TASK: Point shadows
     // TODO @TASK: Low-res effect
     // TODO @TASK: Text rendering
 }

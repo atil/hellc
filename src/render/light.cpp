@@ -48,12 +48,12 @@ DirectionalLight::~DirectionalLight() {
 // Point light
 // 
 
-PointLight::PointLight(const PointLightProperties& params, int light_index) {
-    this->properties = params;
+PointLight::PointLight(Vector3 position_, float intensity_, float attenuation_, int light_index)
+    : position(position_), intensity(intensity_), attenuation(attenuation_) {
 
     const Matrix4 proj = Matrix4::perspective(90.0f, 1.0f, shadow_near_plane, shadow_far_plane);
 
-    const Vector3 pos = params.position;
+    const Vector3 pos = position;
     const Matrix4 v0 = Matrix4::look_at(pos, pos + Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
     const Matrix4 v1 = Matrix4::look_at(pos, pos + Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
     const Matrix4 v2 = Matrix4::look_at(pos, pos + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));

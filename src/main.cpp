@@ -1,4 +1,4 @@
-// TODO @NEXT: Point lights / shadows
+// TODO @NEXT: Fix multiple point lights: only the first one's shadows are cast
 
 #include "render/render.h"
 #include "assets.h"

@@ -77,17 +77,13 @@ struct DirectionalLight {
     ~DirectionalLight();
 };
 
-struct PointLightProperties {
+struct PointLight {
     Vector3 position;
     float intensity;
     float attenuation;
-};
-
-struct PointLight {
     std::unique_ptr<Shader> shader;
-    PointLightProperties properties;
-    PointLight() = default;
-    PointLight(const PointLightProperties& params, int light_index);
+
+    PointLight(Vector3 position_, float intensity_, float attenuation_, int light_index);
 };
 
 struct Skybox {
@@ -96,7 +92,6 @@ struct Skybox {
     buffer_handle_t vao{ default_buffer_handle };
     buffer_handle_t vbo{ default_buffer_handle };
 
-    void render(const Matrix4& player_view_matrix) const;
     Skybox() = default;
     explicit Skybox(const std::string& skybox_path, const Matrix4& projection);
     ~Skybox();
@@ -108,7 +103,7 @@ class Renderer {
     std::unique_ptr<DirectionalLight> directional_light;
     std::unique_ptr<Skybox> skybox;
 
-    PointLight point_light;
+    std::vector<std::unique_ptr<PointLight>> point_lights;
     tex_handle_t point_light_cubemap_handle { default_tex_handle };
     buffer_handle_t point_light_fbo { default_buffer_handle};
 
