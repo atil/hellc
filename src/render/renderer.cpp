@@ -69,9 +69,11 @@ Renderer::Renderer() {
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
 
-    std::unique_ptr<PointLight> point_light_0 = std::make_unique<PointLight>(Vector3(24.0f, 2.0f, -3.0f), 8.0f, 0.25f, 0);
+    std::unique_ptr<PointLight> point_light_0 = std::make_unique<PointLight>(
+        Vector3(24.0f, 2.0f, -3.0f), Vector3(1.0f, 0.0f, 0.0f), 8.0f, 0.25f, 0);
     this->point_lights.push_back(std::move(point_light_0));
-    std::unique_ptr<PointLight> point_light_1 = std::make_unique<PointLight>(Vector3(3.0f, 3.0f, 50.0f), 8.0f, 0.25f, 1);
+    std::unique_ptr<PointLight> point_light_1 = std::make_unique<PointLight>(
+        Vector3(3.0f, 3.0f, 50.0f), Vector3(1.0f, 1.0f, 1.0f), 8.0f, 0.25f, 1);
     this->point_lights.push_back(std::move(point_light_1));
 
     const int point_light_count = static_cast<int>(this->point_lights.size());
@@ -85,12 +87,16 @@ Renderer::Renderer() {
     this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP: A system to handle different positions of objects
                       
     this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
+    this->world_shader->set_vec3("u_directional_light_color", Vector3(1.0f, 0.8f, 0.7f));
     this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
                       
     for (int i = 0; i < point_light_count; i++) {
         const std::string pos_prop_name = "u_point_lights[" + std::to_string(i) + "].position";
         this->world_shader->set_vec3(pos_prop_name, this->point_lights[i]->position);
+
+        const std::string color_prop_name = "u_point_lights[" + std::to_string(i) + "].color";
+        this->world_shader->set_vec3(color_prop_name, this->point_lights[i]->color);
 
         const std::string intensity_prop_name = "u_point_lights[" + std::to_string(i) + "].intensity";
         this->world_shader->set_float(intensity_prop_name, this->point_lights[i]->intensity);

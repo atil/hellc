@@ -1,5 +1,5 @@
-// TODO @NEXT: Custom backbuffer for low-res effect
-// TODO @NEXT: Directional light color
+// TODO @NEXT: Directional light softness
+// TODO @NEXT: Jitter effect
 
 #include "render/render.h"
 #include "assets.h"
@@ -22,6 +22,7 @@ int main() {
 #else
 
 int main() {
+
     Platform platform; // Probably should be the first thing
     Renderer renderer;
     const ObjModelData obj_data("assets/test_lighting.obj");

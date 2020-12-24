@@ -5,6 +5,7 @@
 #include "../assets.h"
 #include "../vector3.h"
 
+
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
 constexpr float far_plane = 1000.0f;
@@ -77,13 +78,15 @@ struct DirectionalLight {
     ~DirectionalLight();
 };
 
+
 struct PointLight {
     Vector3 position;
+    Vector3 color;
     float intensity;
     float attenuation;
     std::unique_ptr<Shader> shader;
 
-    PointLight(Vector3 position_, float intensity_, float attenuation_, int light_index);
+    PointLight(Vector3 position_, Vector3 color_, float intensity_, float attenuation_, int light_index);
 };
 
 struct Skybox {
