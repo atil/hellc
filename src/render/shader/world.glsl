@@ -13,6 +13,8 @@ out vec3 v2f_normal;
 out vec4 v2f_frag_light_space_pos;
 out vec3 v2f_frag_world_pos;
 
+#define JITTER_RESOLUTION vec2(160, 120)
+
 void main() {
     v2f_uv = in_uv;
     v2f_normal = normalize(mat3(transpose(inverse(u_model))) * in_normal);
@@ -20,7 +22,15 @@ void main() {
     v2f_frag_world_pos = vec3(u_model * vec4(in_position, 1.0));
     v2f_frag_light_space_pos = u_directional_light_vp * vec4(v2f_frag_world_pos, 1.0);
 
-    gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);
+
+    vec4 clip_pos = u_projection * u_view * u_model * vec4(in_position, 1.0);
+
+    // jitter effect
+    clip_pos.xyz = clip_pos.xyz / clip_pos.w; // clip space -> NDC
+    clip_pos.xy = floor(JITTER_RESOLUTION * clip_pos.xy) / JITTER_RESOLUTION;
+    clip_pos.xyz *= clip_pos.w; // NDC -> clip space
+
+    gl_Position = clip_pos;
 };
 
 #endif
@@ -79,20 +89,16 @@ float get_directional_brightness() {
     float parallel_bias = 0.0001;
     float bias = max(perp_bias * (1.0 - alignment_with_directional_light), parallel_bias);
 
-    float shadow = 0.0;
+    float brightness = 0.0;
 
-    float tex_depth = texture(u_shadowmap_directional, pos.xy).r; 
-    shadow += (tex_depth + bias) < pos.z ? 0.0 : 1.0;
-    return shadow;
-
-//    vec2 texel_size = 1.0 / textureSize(u_shadowmap_directional, 0);
-//    for (int x = -DIRECTIONAL_LIGHT_SAMPLES; x <= DIRECTIONAL_LIGHT_SAMPLES; x++) {
-//        for (int y = -DIRECTIONAL_LIGHT_SAMPLES; y <= DIRECTIONAL_LIGHT_SAMPLES; y++) {
-//            float pcf_depth = texture(u_shadowmap_directional, pos.xy + vec2(x, y) * texel_size).r; 
-//            shadow += (pcf_depth + bias) < pos.z ? 0.0 : 1.0; // 1 if shadowed
-//        }    
-//    }
-//    return shadow / ((DIRECTIONAL_LIGHT_SAMPLES + 2) * (DIRECTIONAL_LIGHT_SAMPLES + 2));
+    vec2 texel_size = 1.0 / textureSize(u_shadowmap_directional, 0);
+    for (int x = -DIRECTIONAL_LIGHT_SAMPLES; x <= DIRECTIONAL_LIGHT_SAMPLES; x++) {
+        for (int y = -DIRECTIONAL_LIGHT_SAMPLES; y <= DIRECTIONAL_LIGHT_SAMPLES; y++) {
+            float pcf_depth = texture(u_shadowmap_directional, pos.xy + vec2(x, y) * texel_size).r; 
+            brightness += (pcf_depth + bias) < pos.z ? 0.0 : 1.0;
+        }    
+    }
+    return brightness / ((DIRECTIONAL_LIGHT_SAMPLES + 2) * (DIRECTIONAL_LIGHT_SAMPLES + 2));
 } 
 
 vec3 point_shadow_sample_offset_directions[20] = vec3[] (
@@ -106,7 +112,7 @@ vec3 point_shadow_sample_offset_directions[20] = vec3[] (
 #define POINT_SHADOW_SOFTNESS_WITH_DISTANCE 0.005
 
 float get_frag_brightness_from_light(PointLight light, int light_index) {
-    float t_shadow = 0.0;
+    float brightness = 0.0;
     vec3 light_to_frag = v2f_frag_world_pos - light.position;
     float light_to_frag_dist = length(light_to_frag) - 0.0005; // bias
 
@@ -117,11 +123,10 @@ float get_frag_brightness_from_light(PointLight light, int light_index) {
         float depth_in_cubemap = texture(u_shadowmaps_point, vec4(sample_dir, light_index)).r;
         depth_in_cubemap *= u_far_plane;
         if (light_to_frag_dist > depth_in_cubemap) {
-            t_shadow += 1.0;
+            brightness += 1.0;
         }
     }
-    t_shadow = t_shadow / 20.0;
-
+    brightness = brightness / 20.0;
 
     vec3 frag_to_point_light = light.position - v2f_frag_world_pos;
     float alignment_with_point_light = max(dot(v2f_normal, normalize(frag_to_point_light)), 0.0);
@@ -130,7 +135,7 @@ float get_frag_brightness_from_light(PointLight light, int light_index) {
     float max_brightness = alignment_with_point_light * light.intensity
         / (light.attenuation * distance_to_point_light);
 
-    return mix(max_brightness, 0.0, t_shadow);
+    return mix(0.0, max_brightness, brightness);
 }
 
 void main() {
