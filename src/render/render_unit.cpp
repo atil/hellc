@@ -8,31 +8,31 @@
 #include <iostream>
 #include "render.h"
 
-void check_gl_error_renderunit(const std::string& tag) {
-    const int error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "Render unit GL error [" << tag << "] error code: [" << error << "]" << std::endl;
-    }
-}
 
 RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, 
-    const Vector3& position) {
+    const Vector3& position, const Vector3& rotation) {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
     for (const ObjFaceData& face_data : obj_submodel_data.faces) {
-        const Vector3& p0 = obj_data.position_data[face_data.position_indices[0]] + position;
+        const Vector3& obj_p0 = obj_data.position_data[face_data.position_indices[0]];
+        const Vector3 p0 = Vector3::rotate(obj_p0, rotation) + position;
         const Vector2& uv0 = obj_data.uv_data[face_data.uv_indices[0]];
-        const Vector3& n0 = obj_data.normal_data[face_data.normal_indices[0]];
+        const Vector3& obj_n0 = obj_data.normal_data[face_data.normal_indices[0]];
+        const Vector3 n0 = Vector3::rotate(obj_n0, rotation);
         vertex_data.insert(vertex_data.end(), { p0.x, p0.y, p0.z, uv0.x, uv0.y, n0.x, n0.y, n0.z });
 
-        const Vector3& p1 = obj_data.position_data[face_data.position_indices[1]] + position;
+        const Vector3& obj_p1 = obj_data.position_data[face_data.position_indices[1]];
+        const Vector3 p1 = Vector3::rotate(obj_p1, rotation) + position;
         const Vector2& uv1 = obj_data.uv_data[face_data.uv_indices[1]];
-        const Vector3& n1 = obj_data.normal_data[face_data.normal_indices[1]];
+        const Vector3& obj_n1 = obj_data.normal_data[face_data.normal_indices[1]];
+        const Vector3 n1 = Vector3::rotate(obj_n1,rotation);
         vertex_data.insert(vertex_data.end(), { p1.x, p1.y, p1.z, uv1.x, uv1.y, n1.x, n1.y, n1.z });
 
-        const Vector3& p2 = obj_data.position_data[face_data.position_indices[2]] + position;
+        const Vector3& obj_p2 = obj_data.position_data[face_data.position_indices[2]];
+        const Vector3 p2 = Vector3::rotate(obj_p2, rotation) + position;
         const Vector2& uv2 = obj_data.uv_data[face_data.uv_indices[2]];
-        const Vector3& n2 = obj_data.normal_data[face_data.normal_indices[2]];
+        const Vector3& obj_n2 = obj_data.normal_data[face_data.normal_indices[2]];
+        const Vector3 n2 = Vector3::rotate(obj_n2, rotation);
         vertex_data.insert(vertex_data.end(), { p2.x, p2.y, p2.z, uv2.x, uv2.y, n2.x, n2.y, n2.z });
     }
 

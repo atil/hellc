@@ -77,8 +77,17 @@ Vector3 Vector3::rotate_around(const Vector3& v, const Vector3& axis, float angl
     return (v * cos_angle) + (cross(axis, v) * sin_angle) + (axis * dot(axis, v) * (1 - cos_angle));
 }
 
+Vector3 Vector3::rotate(const Vector3& v, const Vector3& euler) {
+    Vector3 r = v;
+    r = rotate_around(r, left, euler.x);
+    r = rotate_around(r, up, euler.y);
+    r = rotate_around(r, forward, euler.z);
+    return r;
+}
+
 const Vector3 Vector3::up = Vector3(0, 1, 0);
 const Vector3 Vector3::left = Vector3(1, 0, 0);
+const Vector3 Vector3::right = Vector3(-1, 0, 0);
 const Vector3 Vector3::forward = Vector3(0, 0, 1);
 
 const Vector3 Vector3::down = Vector3(0, -1, 0);
@@ -110,14 +119,43 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
 
     return m;
 }
-Matrix4 Matrix4::transposed() const {
-    Matrix4 m{ 0 };
 
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            m.data[j * 4 + i] = data[i * 4 + j];
-        }
-    }
+Vector3 Matrix4::operator*(const Vector3& v) const {
+    return {
+        data[0 * 4 + 0] * v.x + data[0 * 4 + 1] * v.y + data[0 * 4 + 2] * v.z + data[0 * 4 + 3],
+        data[1 * 4 + 0] * v.x + data[1 * 4 + 1] * v.y + data[1 * 4 + 2] * v.z + data[1 * 4 + 3],
+        data[2 * 4 + 0] * v.x + data[2 * 4 + 1] * v.y + data[2 * 4 + 2] * v.z + data[2 * 4 + 3],
+    };
+}
+
+// @UNUSED: Don't know if we're gonna need it in the future
+// Remove if it's not used by 04.2021
+Matrix4 Matrix4::rotation(const Vector3& euler) {
+    Matrix4 m{ 0 };
+    const float cos_x = cos(euler.x * deg_to_rad);
+    const float cos_y = cos(euler.y * deg_to_rad);
+    const float cos_z = cos(euler.z * deg_to_rad);
+
+    const float sin_x = sin(euler.x * deg_to_rad);
+    const float sin_y = sin(euler.y * deg_to_rad);
+    const float sin_z = sin(euler.z * deg_to_rad);
+
+    m.data[0 * 4 + 0] = cos_y * cos_z;
+    m.data[1 * 4 + 0] = cos_y * sin_z;
+    m.data[2 * 4 + 0] = -sin_y;
+    m.data[3 * 4 + 0] = 0.0f;
+    m.data[0 * 4 + 1] = sin_x * sin_y * cos_z - cos_x * sin_z;
+    m.data[1 * 4 + 1] = sin_x * sin_y * sin_z + cos_x * cos_z;
+    m.data[2 * 4 + 1] = sin_x * cos_y;
+    m.data[3 * 4 + 1] = 0.0f;
+    m.data[0 * 4 + 2] = cos_x * sin_y * cos_z + sin_x * sin_z;
+    m.data[1 * 4 + 2] = cos_x * sin_y * sin_z - sin_x * cos_z;
+    m.data[2 * 4 + 2] = cos_x * cos_y;
+    m.data[3 * 4 + 2] = 0.0f;
+    m.data[0 * 4 + 3] = 0.0f;
+    m.data[1 * 4 + 3] = 0.0f;
+    m.data[2 * 4 + 3] = 0.0f;
+    m.data[3 * 4 + 3] = 1.0f;
 
     return m;
 }

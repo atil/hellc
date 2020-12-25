@@ -29,11 +29,13 @@ struct Vector3 {
     static Vector3 normalize(const Vector3& v);
     static float distance(const Vector3& v1, const Vector3& v2);
     static Vector3 rotate_around(const Vector3& v, const Vector3& axis, float angle);
+    static Vector3 rotate(const Vector3& v, const Vector3& euler);
 
     static const Vector3 up;
     static const Vector3 down;
     static const Vector3 forward;
     static const Vector3 left;
+    static const Vector3 right;
     static const Vector3 zero;
 
     std::string to_string() const;
@@ -45,8 +47,9 @@ struct Matrix4 {
     float data[16];
 
     Matrix4 operator*(const Matrix4& other) const;
-    Matrix4 transposed() const;
-
+    Vector3 operator*(const Vector3& v) const;
+ 
+    static Matrix4 rotation(const Vector3& euler);
     static Matrix4 look_at(const Vector3& eye, const Vector3& center, const Vector3& up);
     static Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
     static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);

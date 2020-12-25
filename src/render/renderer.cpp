@@ -111,11 +111,11 @@ Renderer::Renderer() {
     this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
 }
 
-void Renderer::register_obj(const ObjModelData& obj_data, const Vector3& position) {
+void Renderer::register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation) {
     for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : obj_data.materials) {
             if (m.name == obj_face_data.material_name) {
-                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data, position);
+                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data, position, rotation);
                 this->render_units.push_back(std::move(ru));
             }
         }

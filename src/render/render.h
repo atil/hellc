@@ -61,7 +61,8 @@ class RenderUnit {
     static const Matrix4 perspective;
 
 public:
-    RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, const Vector3& position);
+    RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data,
+        const Vector3& position, const Vector3& rotation);
     ~RenderUnit();
 
     void render() const;
@@ -118,7 +119,7 @@ public:
     Renderer();
     ~Renderer();
 
-    void register_obj(const ObjModelData& obj_data, const Vector3& position);
+    void register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation);
     void render(const Matrix4& player_view_matrix);
 
 };
