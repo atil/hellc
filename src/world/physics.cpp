@@ -5,8 +5,23 @@
 constexpr float player_height = 1.0f;
 constexpr float player_radius = 0.5f;
 
-void World::register_static_collider(const ObjModelData& obj_data) {
-    this->static_colliders.emplace_back(obj_data);
+StaticCollider::StaticCollider(const ObjModelData& obj_data, const Vector3& position) {
+    const std::vector<Vector3>& position_data = obj_data.position_data;
+
+    for (const ObjSubmodelData& obj_submodel_data : obj_data.submodel_data) {
+        for (const ObjFaceData& face_data : obj_submodel_data.faces) {
+            const size_t* position_indices = face_data.position_indices;
+            const Vector3& p0 = position_data[position_indices[0]] + position;
+            const Vector3& p1 = position_data[position_indices[1]] + position;
+            const Vector3& p2 = position_data[position_indices[2]] + position;
+
+            this->triangles.emplace_back(p0, p1, p2);
+        }
+    }
+}
+
+void World::register_static_collider(const ObjModelData& obj_data, const Vector3& position) {
+    this->static_colliders.emplace_back(obj_data, position);
 }
 
 bool Physics::resolve_penetration(const PlayerShape& player_shape, const Triangle& triangle, Vector3& penetration) {

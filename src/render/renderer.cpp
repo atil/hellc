@@ -84,7 +84,7 @@ Renderer::Renderer() {
     this->world_shader->use();
     this->world_shader->set_int("u_texture", 0);
     this->world_shader->set_mat4("u_projection", perspective);
-    this->world_shader->set_mat4("u_model", Matrix4::identity()); // @CLEANUP: A system to handle different positions of objects
+    this->world_shader->set_mat4("u_model", Matrix4::identity());
                       
     this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
     this->world_shader->set_vec3("u_directional_light_color", Vector3(1.0f, 0.8f, 0.7f));
@@ -111,11 +111,11 @@ Renderer::Renderer() {
     this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
 }
 
-void Renderer::register_obj(const ObjModelData& obj_data) {
+void Renderer::register_obj(const ObjModelData& obj_data, const Vector3& position) {
     for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : obj_data.materials) {
             if (m.name == obj_face_data.material_name) {
-                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data);
+                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data, position);
                 this->render_units.push_back(std::move(ru));
             }
         }
@@ -141,7 +141,7 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glClear(GL_DEPTH_BUFFER_BIT);
     for (auto& point_light : this->point_lights) {
         point_light->shader->use();
-        for (auto& ru : render_units) {
+        for (auto& ru : this->render_units) {
             ru->render();
         }
     }
@@ -186,7 +186,6 @@ void Renderer::render(const Matrix4& player_view_matrix) {
     glBlitFramebuffer(0, 0, draw_framebuffer_size.x, draw_framebuffer_size.y, 0, 0, window_width, window_height,
         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    // TODO @TASK: Low-res effect
     // TODO @TASK: Text rendering
 }
 

@@ -173,7 +173,6 @@
     <ClCompile Include="src\render\renderer.cpp" />
     <ClCompile Include="src\render\render_unit.cpp" />
     <ClCompile Include="src\render\shader.cpp" />
-    <ClCompile Include="src\world\static_collider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLFW\glfw3.h" />

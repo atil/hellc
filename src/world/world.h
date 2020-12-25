@@ -57,7 +57,7 @@ struct PlayerShape {
 
 struct StaticCollider {
     std::vector<Triangle> triangles;
-    explicit StaticCollider(const ObjModelData& obj_data);
+    explicit StaticCollider(const ObjModelData& obj_data, const Vector3& position);
 };
 
 struct Physics {
@@ -86,7 +86,7 @@ class World {
 
 public:
 
-    void register_static_collider(const ObjModelData& obj_data);
+    void register_static_collider(const ObjModelData& obj_data, const Vector3& position);
     void tick(const Platform& platform, float dt);
     Matrix4 get_view_matrix() const;
 

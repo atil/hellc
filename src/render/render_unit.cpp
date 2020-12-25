@@ -15,21 +15,22 @@ void check_gl_error_renderunit(const std::string& tag) {
     }
 }
 
-RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data) {
+RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, 
+    const Vector3& position) {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
     for (const ObjFaceData& face_data : obj_submodel_data.faces) {
-        const Vector3& p0 = obj_data.position_data[face_data.position_indices[0]];
+        const Vector3& p0 = obj_data.position_data[face_data.position_indices[0]] + position;
         const Vector2& uv0 = obj_data.uv_data[face_data.uv_indices[0]];
         const Vector3& n0 = obj_data.normal_data[face_data.normal_indices[0]];
         vertex_data.insert(vertex_data.end(), { p0.x, p0.y, p0.z, uv0.x, uv0.y, n0.x, n0.y, n0.z });
 
-        const Vector3& p1 = obj_data.position_data[face_data.position_indices[1]];
+        const Vector3& p1 = obj_data.position_data[face_data.position_indices[1]] + position;
         const Vector2& uv1 = obj_data.uv_data[face_data.uv_indices[1]];
         const Vector3& n1 = obj_data.normal_data[face_data.normal_indices[1]];
         vertex_data.insert(vertex_data.end(), { p1.x, p1.y, p1.z, uv1.x, uv1.y, n1.x, n1.y, n1.z });
 
-        const Vector3& p2 = obj_data.position_data[face_data.position_indices[2]];
+        const Vector3& p2 = obj_data.position_data[face_data.position_indices[2]] + position;
         const Vector2& uv2 = obj_data.uv_data[face_data.uv_indices[2]];
         const Vector3& n2 = obj_data.normal_data[face_data.normal_indices[2]];
         vertex_data.insert(vertex_data.end(), { p2.x, p2.y, p2.z, uv2.x, uv2.y, n2.x, n2.y, n2.z });

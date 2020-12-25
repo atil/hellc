@@ -1,5 +1,5 @@
-// TODO @NEXT: Directional light softness
-// TODO @NEXT: Jitter effect
+// TODO @NEXT: Multiple objects
+// TODO @NEXT: Read objects/properties from file
 
 #include "render/render.h"
 #include "assets.h"
@@ -25,11 +25,17 @@ int main() {
 
     Platform platform; // Probably should be the first thing
     Renderer renderer;
-    const ObjModelData obj_data("assets/test_lighting.obj");
-    renderer.register_obj(obj_data);
+
+    Vector3 pos_world(0, 0, 0);
+    Vector3 pos_triangle(-5, 1, 0);
+    const ObjModelData obj_data_world("assets/test_lighting.obj");
+    renderer.register_obj(obj_data_world, pos_world);
+
+    const ObjModelData obj_data_triangle("assets/triangle.obj");
+    renderer.register_obj(obj_data_triangle, pos_triangle);
 
     World world;
-    world.register_static_collider(obj_data);
+    world.register_static_collider(obj_data_world, pos_world); // TODO @TASK: Collider rotation
 
     float prev_time = static_cast<float>(Platform::get_time());
     while (!platform.should_window_close()) {
