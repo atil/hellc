@@ -9,7 +9,7 @@ uniform mat4 u_projection;
 uniform mat4 u_directional_light_vp;
 
 out vec2 v2f_uv;
-out vec3 v2f_normal;
+out vec3 v2f_world_normal;
 out vec4 v2f_frag_light_space_pos;
 out vec3 v2f_frag_world_pos;
 
@@ -17,11 +17,12 @@ out vec3 v2f_frag_world_pos;
 
 void main() {
     v2f_uv = in_uv;
-    v2f_normal = normalize(mat3(transpose(inverse(u_model))) * in_normal);
+
+    // TODO @PERF: We can calculate world normals on CPU and send here afterwards (for static objects)
+    v2f_world_normal = normalize(mat3(transpose(inverse(u_model))) * in_normal);
 
     v2f_frag_world_pos = vec3(u_model * vec4(in_position, 1.0));
     v2f_frag_light_space_pos = u_directional_light_vp * vec4(v2f_frag_world_pos, 1.0);
-
 
     vec4 clip_pos = u_projection * u_view * u_model * vec4(in_position, 1.0);
 
@@ -43,7 +44,7 @@ void main() {
 
 
 in vec2 v2f_uv;
-in vec3 v2f_normal;
+in vec3 v2f_world_normal;
 in vec4 v2f_frag_light_space_pos;
 in vec3 v2f_frag_world_pos;
 
@@ -71,7 +72,7 @@ out vec4 frag_color;
 float get_directional_brightness() {
     vec3 light_dir = normalize(u_directional_light_dir);
 
-    float alignment_with_directional_light = dot(v2f_normal, light_dir);
+    float alignment_with_directional_light = dot(v2f_world_normal, light_dir);
     if (alignment_with_directional_light < 0.0) {
         // Surface looking away from light is always in shadow
         return 0.0;
@@ -112,7 +113,14 @@ vec3 point_shadow_sample_offset_directions[20] = vec3[] (
 #define POINT_SHADOW_SOFTNESS_WITH_DISTANCE 0.005
 
 float get_frag_brightness_from_light(PointLight light, int light_index) {
+    vec3 frag_to_point_light = light.position - v2f_frag_world_pos;
+    float alignment_with_point_light = max(dot(v2f_world_normal, normalize(frag_to_point_light)), 0.0);
+    if (alignment_with_point_light < 0) {
+        return 0; // Looking away from point light
+    }
+
     float brightness = 0.0;
+
     vec3 light_to_frag = v2f_frag_world_pos - light.position;
     float light_to_frag_dist = length(light_to_frag) - 0.0005; // bias
 
@@ -122,14 +130,12 @@ float get_frag_brightness_from_light(PointLight light, int light_index) {
         vec3 sample_dir = light_to_frag + point_shadow_sample_offset_directions[i] * disk_radius;
         float depth_in_cubemap = texture(u_shadowmaps_point, vec4(sample_dir, light_index)).r;
         depth_in_cubemap *= u_far_plane;
-        if (light_to_frag_dist > depth_in_cubemap) {
+        if (abs(light_to_frag_dist - depth_in_cubemap) < 0.01) {
             brightness += 1.0;
         }
     }
     brightness = brightness / 20.0;
 
-    vec3 frag_to_point_light = light.position - v2f_frag_world_pos;
-    float alignment_with_point_light = max(dot(v2f_normal, normalize(frag_to_point_light)), 0.0);
     float distance_to_point_light = length(frag_to_point_light);
 
     float max_brightness = alignment_with_point_light * light.intensity

@@ -84,6 +84,10 @@ Renderer::Renderer() {
     this->world_shader->use();
     this->world_shader->set_int("u_texture", 0);
     this->world_shader->set_mat4("u_projection", perspective);
+
+    // TODO @TASK: Currently the render units are actually static render units
+    // We change the mesh data itself when we offset/rotate them
+    // For dynamic objects, we'll have to use this uniform to transform them
     this->world_shader->set_mat4("u_model", Matrix4::identity());
                       
     this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
