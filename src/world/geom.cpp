@@ -35,7 +35,7 @@ float get_line_segment_plane_distance(const Vector3& a, const Vector3& b, const 
     }
 
     closer_point = dist_a < dist_b ? a : b;
-    return min(dist_a, dist_b);
+    return std::min(dist_a, dist_b);
 }
 
 Vector3 project_point_on_triangle_plane(const Vector3& point, const Triangle& triangle, float& distance) {
@@ -47,10 +47,10 @@ Vector3 project_point_on_triangle_plane(const Vector3& point, const Triangle& tr
 
 bool is_point_in_triangle(const Vector3& point, const Triangle& triangle) {
     if (abs(Vector3::dot(point - triangle.p0, triangle.normal)) > 0.0001f) {
-        std::cout << "Attempted to perform point-triangle check on non-coplanar point-triangle : " << std::endl <<
-            "point: " << point.to_string() << std::endl <<
-            "triangle p0: " << triangle.p0.to_string() << std::endl <<
-            "triangle normal" << triangle.normal.to_string() << std::endl;
+        // TODO @TASK @DEV: This should be printed only when the HELL_TEST flag is enabled
+        // That's a thing we'll enable when we debug/check only the physics stuff
+        //Debug::log("Attempted to perform point-triangle check on non-coplanar point-triangle : \n point %s\n\
+        //    triangle p0: %s \ntriangle normal: %s", point.to_string(), triangle.p0.to_string(), triangle.normal.to_string());
         return false;
     }
 

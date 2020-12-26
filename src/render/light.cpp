@@ -51,26 +51,21 @@ DirectionalLight::~DirectionalLight() {
 PointLight::PointLight(Vector3 position_, Vector3 color_, float intensity_, float attenuation_, int light_index)
     : position(position_), color(color_), intensity(intensity_), attenuation(attenuation_) {
 
-    const Matrix4 proj = Matrix4::perspective(90.0f, 1.0f, shadow_near_plane, shadow_far_plane);
-
-    const Vector3 pos = position;
-    const Matrix4 v0 = Matrix4::look_at(pos, pos + Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
-    const Matrix4 v1 = Matrix4::look_at(pos, pos + Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f));
-    const Matrix4 v2 = Matrix4::look_at(pos, pos + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
-    const Matrix4 v3 = Matrix4::look_at(pos, pos + Vector3(0.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
-    const Matrix4 v4 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, -1.0f, 0.0f));
-    const Matrix4 v5 = Matrix4::look_at(pos, pos + Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, -1.0f, 0.0f));
-
     this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_point.glsl");
     this->shader->use();
-    this->shader->set_mat4("u_shadow_matrices[0]", proj * v0);
-    this->shader->set_mat4("u_shadow_matrices[1]", proj * v1);
-    this->shader->set_mat4("u_shadow_matrices[2]", proj * v2);
-    this->shader->set_mat4("u_shadow_matrices[3]", proj * v3);
-    this->shader->set_mat4("u_shadow_matrices[4]", proj * v4);
-    this->shader->set_mat4("u_shadow_matrices[5]", proj * v5);
+
+    const Matrix4 proj = Matrix4::perspective(90.0f, 1.0f, shadow_near_plane, shadow_far_plane);
+
+    const Vector3 dirs[6] = { Vector3::right, Vector3::left, Vector3::up, Vector3::down, Vector3::forward, Vector3::back };
+    const Vector3 ups[6] = { Vector3::down, Vector3::down, Vector3::forward, Vector3::back, Vector3::down, Vector3::down };
+    for (int i = 0; i < 6; i++) {
+        Matrix4 view = Matrix4::look_at(this->position, this->position + dirs[i], ups[i]);
+        const std::string mat_prop_name = "u_shadow_matrices[" + std::to_string(i) + "]";
+        this->shader->set_mat4(mat_prop_name, proj * view);
+    }
+
     this->shader->set_float("u_far_plane", shadow_far_plane);
-    this->shader->set_vec3("u_light_pos", pos);
+    this->shader->set_vec3("u_light_pos", this->position);
     this->shader->set_int("u_light_index", light_index);
     this->shader->set_mat4("u_model", Matrix4::identity());
 

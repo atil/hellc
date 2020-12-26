@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS // TODO @CLEANUP What was this for?
+#define _CRT_SECURE_NO_WARNINGS // To suppress "sscanf is bad" warning
 #include "assets.h"
 #include <iostream>
 #include <fstream>
@@ -39,9 +39,7 @@ std::vector<Material> load_mtl_file(const std::string& file_path) {
             else if (line.find("Kd") == 0) {
                 float d0, d1, d2;
                 line_stream >> command >> d0 >> d1 >> d2; // Kd
-                m.diffuse[0] = d0;
-                m.diffuse[1] = d1;
-                m.diffuse[2] = d2;
+                m.diffuse = Vector3(d0, d1, d2);
             }
             else if (line.find('d') == 0) {
                 line_stream >> command >> m.transparency; // d
@@ -129,5 +127,86 @@ ObjModelData::ObjModelData(const std::string& file_path) {
     }
 
     this->submodel_data.push_back(current_submodel);
+}
+
+
+Vector3 read_vec3(const std::string& line, std::istringstream& line_stream) {
+    line_stream.clear();
+    line_stream.str(line);
+    float x, y, z;
+    line_stream >> x >> y >> z;
+
+    return Vector3(x, y, z);
+}
+
+std::string read_string(const std::string& line, std::istringstream& line_stream) {
+    line_stream.clear();
+    line_stream.str(line);
+    std::string str;
+    line_stream >> str;
+    return str;
+}
+
+
+float read_float(const std::string& line, std::istringstream& line_stream) {
+    line_stream.clear();
+    line_stream.str(line);
+    float f;
+    line_stream >> f;
+    return f;
+}
+
+Scene read_scene(const std::string& file_path) {
+    std::ifstream stream(file_path);
+    if (!stream.is_open()) {
+        std::cout << "Failed to open scene file" << file_path << std::endl;
+        return { };
+    }
+
+    Scene scene;
+
+    std::string line;
+    std::istringstream line_stream;
+    while (std::getline(stream, line)) {
+        if (line.find("#worldspawn") == 0) {
+
+            std::getline(stream, line);
+            std::string obj_name = read_string(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 pos = read_vec3(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 rot = read_vec3(line, line_stream);
+
+            scene.worldspawn.push_back({ obj_name, pos, rot });
+        }
+        else if (line.find("#point_light") == 0) {
+            std::getline(stream, line);
+            Vector3 pos = read_vec3(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 color = read_vec3(line, line_stream);
+
+            std::getline(stream, line);
+            float attenuation = read_float(line, line_stream);
+
+            std::getline(stream, line);
+            float intensity = read_float(line, line_stream);
+
+            scene.point_light_info.push_back({ pos, color, attenuation, intensity });
+        }
+        else if (line.find("#directional_light") == 0) {
+            std::getline(stream, line);
+            Vector3 pos = read_vec3(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 color = read_vec3(line, line_stream);
+
+            scene.directional_light_info = { pos, color };
+        }
+    }
+
+    return scene;
 }
 

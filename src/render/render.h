@@ -5,7 +5,6 @@
 #include "../assets.h"
 #include "../vector3.h"
 
-
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
 constexpr float far_plane = 1000.0f;
@@ -111,15 +110,17 @@ class Renderer {
     tex_handle_t point_light_cubemap_handle { default_tex_handle };
     buffer_handle_t point_light_fbo { default_buffer_handle};
 
-    buffer_handle_t draw_fbo;
-    tex_handle_t draw_tex_handle;
-    buffer_handle_t draw_rbo;
+    buffer_handle_t draw_fbo{ default_buffer_handle };
+    tex_handle_t draw_tex_handle { default_tex_handle };
+    buffer_handle_t draw_rbo{ default_buffer_handle };
 
 public:
     Renderer();
     ~Renderer();
 
     void register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation);
+    void register_point_light(const PointLightInfo& point_light_info);
+    void register_directional_light(const DirectionalLightInfo& directional_light_info);
     void render(const Matrix4& player_view_matrix);
 
 };

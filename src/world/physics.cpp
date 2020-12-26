@@ -92,6 +92,9 @@ bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_
     const Vector3 mid_pos = player_shape.segment_bottom;
 
     const Vector3 left = Vector3::cross(Vector3::up, player_move_dir_horz);
+    // TODO @TASK: Ghost jump ray
+    // TODO @PERF: Only three rays at most is enough:
+    // One for the move dir, one for mid_pos, one for ghost jump
     std::vector<Ray> grounded_check_rays {
         Ray(mid_pos, Vector3::down),
         Ray(mid_pos + player_move_dir_horz * player_shape.radius, Vector3::down),

@@ -91,6 +91,7 @@ const Vector3 Vector3::down = Vector3(0, -1, 0);
 const Vector3 Vector3::left = Vector3(-1, 0, 0);
 const Vector3 Vector3::right = Vector3(1, 0, 0);
 const Vector3 Vector3::forward = Vector3(0, 0, 1);
+const Vector3 Vector3::back = Vector3(0, 0, -1);
 
 std::string Vector3::to_string() const {
 

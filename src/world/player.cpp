@@ -1,4 +1,3 @@
-#include <iostream>
 #include "world.h" 
 #include "geom.h"
 #include <tuple>

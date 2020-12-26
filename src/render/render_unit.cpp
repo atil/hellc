@@ -8,11 +8,11 @@
 #include <iostream>
 #include "render.h"
 
-
 RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, 
     const Vector3& position, const Vector3& rotation) {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
+
     for (const ObjFaceData& face_data : obj_submodel_data.faces) {
         const Vector3& obj_p0 = obj_data.position_data[face_data.position_indices[0]];
         const Vector3 p0 = Vector3::rotate(obj_p0, rotation) + position;
@@ -69,7 +69,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
     // TODO @BACKLOG: Handling color-only materials
     // We're temporarily handling it like this, but we should use another shader for this
     if (!material.diffuse_texture_name.empty()) {
-        const std::string image_path = "assets/" + material.diffuse_texture_name;
+        const std::string image_path = "assets/textures/" + material.diffuse_texture_name;
         const Image image(image_path, true);
         glGenTextures(1, &(this->tex_handle));
         glBindTexture(GL_TEXTURE_2D, this->tex_handle);

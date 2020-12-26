@@ -1,7 +1,7 @@
 #pragma once
+//#include "common.h"
 #include <string>
 #include <vector>
-
 #include "vector3.h"
 
 struct ObjFaceData {
@@ -25,7 +25,7 @@ struct ObjSubmodelData {
 struct Material {
     std::string name;
     std::string diffuse_texture_name;
-    float diffuse[3]{ 0 };
+    Vector3 diffuse;
     float transparency { 0 };
 };
 
@@ -40,3 +40,29 @@ struct ObjModelData {
 
     explicit ObjModelData(const std::string& file_path);
 };
+
+struct WorldspawnEntry {
+    std::string obj_name;
+    Vector3 position;
+    Vector3 rotation;
+};
+
+struct PointLightInfo {
+    Vector3 position;
+    Vector3 color;
+    float intensity;
+    float attenuation;
+};
+
+struct DirectionalLightInfo {
+    Vector3 position;
+    Vector3 color;
+};
+
+struct Scene {
+    std::vector<WorldspawnEntry> worldspawn;
+    std::vector<PointLightInfo> point_light_info;
+    DirectionalLightInfo directional_light_info;
+};
+
+Scene read_scene(const std::string& file_path);

@@ -126,6 +126,13 @@ void Renderer::register_static_obj(const ObjModelData& obj_data, const Vector3& 
     }
 }
 
+void Renderer::register_point_light(const PointLightInfo& point_light_info) {
+    // TODO @NEXT: Start implementing this right away
+}
+
+void Renderer::register_directional_light(const DirectionalLightInfo& directional_light_info) {
+}
+
 void Renderer::render(const Matrix4& player_view_matrix) {
     
     // Directional shadow
