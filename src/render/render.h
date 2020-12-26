@@ -11,6 +11,7 @@ constexpr float far_plane = 1000.0f;
 constexpr float shadow_near_plane = 0.001f;
 constexpr float shadow_far_plane = 1000.0f;
 constexpr Vector2i draw_framebuffer_size(640, 360);
+constexpr int max_point_light_count = 10; // TODO @CLEANUP: We have the same define in the world shader
 
 typedef int uniform_loc_t;
 typedef unsigned int shader_handle_t;
@@ -80,13 +81,10 @@ struct DirectionalLight {
 
 
 struct PointLight {
-    Vector3 position;
-    Vector3 color;
-    float intensity;
-    float attenuation;
+    PointLightInfo info;
     std::unique_ptr<Shader> shader;
 
-    PointLight(Vector3 position_, Vector3 color_, float intensity_, float attenuation_, int light_index);
+    PointLight(const PointLightInfo& point_light_info, int light_index);
 };
 
 struct Skybox {

@@ -42,7 +42,6 @@ void main() {
 
 #ifdef FRAGMENT
 
-
 in vec2 v2f_uv;
 in vec3 v2f_world_normal;
 in vec4 v2f_frag_light_space_pos;

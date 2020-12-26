@@ -47,8 +47,6 @@ Vector3 project_point_on_triangle_plane(const Vector3& point, const Triangle& tr
 
 bool is_point_in_triangle(const Vector3& point, const Triangle& triangle) {
     if (abs(Vector3::dot(point - triangle.p0, triangle.normal)) > 0.0001f) {
-        // TODO @TASK @DEV: This should be printed only when the HELL_TEST flag is enabled
-        // That's a thing we'll enable when we debug/check only the physics stuff
         //Debug::log("Attempted to perform point-triangle check on non-coplanar point-triangle : \n point %s\n\
         //    triangle p0: %s \ntriangle normal: %s", point.to_string(), triangle.p0.to_string(), triangle.normal.to_string());
         return false;

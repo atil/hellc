@@ -1,6 +1,5 @@
-// TODO @NEXT: Review items
 // TODO @NEXT: Read objects/properties from file
-//  - Register lights to renderer
+//  - Register the directional light to renderer
 // TODO @NEXT: Wiggly torch-lights
 // TODO @NEXT: Fix light bleed and peter-panning
 
@@ -32,6 +31,10 @@ int main() {
         const ObjModelData obj_data(entry.obj_name);
         renderer.register_static_obj(obj_data, entry.position, entry.rotation);
         world.register_static_collider(obj_data, entry.position, entry.rotation);
+    }
+
+    for (const PointLightInfo& point_light_info : scene.point_light_info) {
+        renderer.register_point_light(point_light_info);
     }
 
     float prev_time = Platform::get_time();

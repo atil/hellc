@@ -69,16 +69,7 @@ Renderer::Renderer() {
     const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
     this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
 
-    std::unique_ptr<PointLight> point_light_0 = std::make_unique<PointLight>(
-        Vector3(24.0f, 2.0f, -3.0f), Vector3(1.0f, 0.0f, 0.0f), 8.0f, 0.25f, 0);
-    this->point_lights.push_back(std::move(point_light_0));
-    std::unique_ptr<PointLight> point_light_1 = std::make_unique<PointLight>(
-        Vector3(3.0f, 3.0f, 50.0f), Vector3(1.0f, 1.0f, 1.0f), 8.0f, 0.25f, 1);
-    this->point_lights.push_back(std::move(point_light_1));
-
-    const int point_light_count = static_cast<int>(this->point_lights.size());
-
-    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo, point_light_count);
+    create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo, max_point_light_count);
 
     this->world_shader = std::make_unique<Shader>("src/render/shader/world.glsl");
     this->world_shader->use();
@@ -94,22 +85,7 @@ Renderer::Renderer() {
     this->world_shader->set_vec3("u_directional_light_color", Vector3(1.0f, 0.8f, 0.7f));
     this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
-                      
-    for (int i = 0; i < point_light_count; i++) {
-        const std::string pos_prop_name = "u_point_lights[" + std::to_string(i) + "].position";
-        this->world_shader->set_vec3(pos_prop_name, this->point_lights[i]->position);
-
-        const std::string color_prop_name = "u_point_lights[" + std::to_string(i) + "].color";
-        this->world_shader->set_vec3(color_prop_name, this->point_lights[i]->color);
-
-        const std::string intensity_prop_name = "u_point_lights[" + std::to_string(i) + "].intensity";
-        this->world_shader->set_float(intensity_prop_name, this->point_lights[i]->intensity);
-
-        const std::string att_prop_name = "u_point_lights[" + std::to_string(i) + "].attenuation";
-        this->world_shader->set_float(att_prop_name, this->point_lights[i]->attenuation);
-    }
     this->world_shader->set_int("u_shadowmaps_point", 2);
-    this->world_shader->set_int("u_point_light_count", point_light_count);
     this->world_shader->set_float("u_far_plane", shadow_far_plane);
 
     this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
@@ -127,10 +103,30 @@ void Renderer::register_static_obj(const ObjModelData& obj_data, const Vector3& 
 }
 
 void Renderer::register_point_light(const PointLightInfo& point_light_info) {
-    // TODO @NEXT: Start implementing this right away
+    const int index_to_add = static_cast<int>(this->point_lights.size());
+    std::unique_ptr<PointLight> light = std::make_unique<PointLight>(point_light_info, index_to_add);
+
+    this->point_lights.push_back(std::move(light));
+
+    this->world_shader->use();
+    this->world_shader->set_int("u_point_light_count", index_to_add + 1);
+
+    const std::string index_str = std::to_string(index_to_add);
+    const std::string pos_prop_name = "u_point_lights[" + index_str + "].position";
+    this->world_shader->set_vec3(pos_prop_name, this->point_lights[index_to_add]->info.position);
+
+    const std::string color_prop_name = "u_point_lights[" + index_str + "].color";
+    this->world_shader->set_vec3(color_prop_name, this->point_lights[index_to_add]->info.color);
+
+    const std::string intensity_prop_name = "u_point_lights[" + index_str + "].intensity";
+    this->world_shader->set_float(intensity_prop_name, this->point_lights[index_to_add]->info.intensity);
+
+    const std::string att_prop_name = "u_point_lights[" + index_str + "].attenuation";
+    this->world_shader->set_float(att_prop_name, this->point_lights[index_to_add]->info.attenuation);
 }
 
 void Renderer::register_directional_light(const DirectionalLightInfo& directional_light_info) {
+    // TODO @NEXT: Start from here
 }
 
 void Renderer::render(const Matrix4& player_view_matrix) {

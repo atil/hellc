@@ -13,6 +13,6 @@ inline void check_gl_error(const std::string& tag) {
 inline void check_gl_framebuffer_complete(const std::string& tag) {
     const int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << " Framebuffer isn't complete: " << tag << std::endl;
+        std::cout << "Framebuffer isn't complete: " << tag << std::endl;
     }
 }

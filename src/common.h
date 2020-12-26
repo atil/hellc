@@ -1,5 +1,5 @@
 #pragma once
-//#define NDEBUG // TODO @TASK: Use build configurations
+//#define NDEBUG // TODO @TASK @DEV: Use build configurations
 
 #include <string>
 
@@ -13,6 +13,10 @@
     #include <debugapi.h>
     #endif
 #endif
+
+// TODO @TASK @DEV: This should be enabled only when the HELL_TEST flag is enabled
+// That's a thing we'll enable when we actually debug stuff, not used in the implementation
+// The reason is because it makes the compilation a bit longer
 
 struct Debug {
     // Taken from: https://stackoverflow.com/a/49812356/4894526

@@ -48,8 +48,7 @@ DirectionalLight::~DirectionalLight() {
 // Point light
 // 
 
-PointLight::PointLight(Vector3 position_, Vector3 color_, float intensity_, float attenuation_, int light_index)
-    : position(position_), color(color_), intensity(intensity_), attenuation(attenuation_) {
+PointLight::PointLight(const PointLightInfo& point_light_info, int light_index) : info(point_light_info) {
 
     this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_point.glsl");
     this->shader->use();
@@ -59,13 +58,13 @@ PointLight::PointLight(Vector3 position_, Vector3 color_, float intensity_, floa
     const Vector3 dirs[6] = { Vector3::right, Vector3::left, Vector3::up, Vector3::down, Vector3::forward, Vector3::back };
     const Vector3 ups[6] = { Vector3::down, Vector3::down, Vector3::forward, Vector3::back, Vector3::down, Vector3::down };
     for (int i = 0; i < 6; i++) {
-        Matrix4 view = Matrix4::look_at(this->position, this->position + dirs[i], ups[i]);
+        Matrix4 view = Matrix4::look_at(this->info.position, this->info.position + dirs[i], ups[i]);
         const std::string mat_prop_name = "u_shadow_matrices[" + std::to_string(i) + "]";
         this->shader->set_mat4(mat_prop_name, proj * view);
     }
 
     this->shader->set_float("u_far_plane", shadow_far_plane);
-    this->shader->set_vec3("u_light_pos", this->position);
+    this->shader->set_vec3("u_light_pos", this->info.position);
     this->shader->set_int("u_light_index", light_index);
     this->shader->set_mat4("u_model", Matrix4::identity());
 
