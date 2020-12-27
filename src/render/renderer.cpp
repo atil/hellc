@@ -66,8 +66,6 @@ Renderer::Renderer() {
 
     create_draw_fbo(this->draw_fbo, this->draw_tex_handle, this->draw_rbo);
 
-    const Vector3 directional_light_dir(55.0f, 55.0f, -50.0f);
-    this->directional_light = std::make_unique<DirectionalLight>(directional_light_dir);
 
     create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo, max_point_light_count);
 
@@ -81,9 +79,6 @@ Renderer::Renderer() {
     // For dynamic objects, we'll have to use this uniform to transform them
     this->world_shader->set_mat4("u_model", Matrix4::identity());
                       
-    this->world_shader->set_vec3("u_directional_light_dir", directional_light_dir);
-    this->world_shader->set_vec3("u_directional_light_color", Vector3(1.0f, 0.8f, 0.7f));
-    this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
     this->world_shader->set_int("u_shadowmap_directional", 1);
     this->world_shader->set_int("u_shadowmaps_point", 2);
     this->world_shader->set_float("u_far_plane", shadow_far_plane);
@@ -126,7 +121,11 @@ void Renderer::register_point_light(const PointLightInfo& point_light_info) {
 }
 
 void Renderer::register_directional_light(const DirectionalLightInfo& directional_light_info) {
-    // TODO @NEXT: Start from here
+    this->directional_light = std::make_unique<DirectionalLight>(directional_light_info);
+    this->world_shader->use();
+    this->world_shader->set_vec3("u_directional_light_dir", directional_light_info.position);
+    this->world_shader->set_vec3("u_directional_light_color", directional_light_info.color);
+    this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
 }
 
 void Renderer::render(const Matrix4& player_view_matrix) {

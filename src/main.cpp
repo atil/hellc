@@ -1,5 +1,3 @@
-// TODO @NEXT: Read objects/properties from file
-//  - Register the directional light to renderer
 // TODO @NEXT: Wiggly torch-lights
 // TODO @NEXT: Fix light bleed and peter-panning
 
@@ -36,6 +34,8 @@ int main() {
     for (const PointLightInfo& point_light_info : scene.point_light_info) {
         renderer.register_point_light(point_light_info);
     }
+
+    renderer.register_directional_light(scene.directional_light_info);
 
     float prev_time = Platform::get_time();
     while (!platform.should_window_close()) {

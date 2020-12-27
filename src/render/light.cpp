@@ -7,10 +7,10 @@
 // Directional light
 //
 
-DirectionalLight::DirectionalLight(const Vector3& dir) {
+DirectionalLight::DirectionalLight(const DirectionalLightInfo& info) {
     constexpr float s = 100.0f; // Ortho volume size
     const Matrix4 proj = Matrix4::ortho(-s, s, -s, s, shadow_near_plane, shadow_far_plane);
-    const Matrix4 view = Matrix4::look_at(dir, Vector3::zero, Vector3::up);
+    const Matrix4 view = Matrix4::look_at(info.position, Vector3::zero, Vector3::up);
     this->view_proj = proj * view;
 
     this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_directional.glsl");
@@ -49,7 +49,6 @@ DirectionalLight::~DirectionalLight() {
 // 
 
 PointLight::PointLight(const PointLightInfo& point_light_info, int light_index) : info(point_light_info) {
-
     this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_point.glsl");
     this->shader->use();
 

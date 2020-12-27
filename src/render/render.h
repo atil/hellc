@@ -75,10 +75,9 @@ struct DirectionalLight {
     tex_handle_t depth_tex_handle{ default_tex_handle };
 
     DirectionalLight() = default;
-    explicit DirectionalLight(const Vector3& dir);
+    explicit DirectionalLight(const DirectionalLightInfo& info);
     ~DirectionalLight();
 };
-
 
 struct PointLight {
     PointLightInfo info;
