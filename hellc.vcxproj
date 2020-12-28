@@ -214,6 +214,7 @@
     <ClInclude Include="src\vector3.h" />
     <ClInclude Include="src\world\geom.h" />
     <ClInclude Include="src\world\world.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\render\shader\world.glsl" />

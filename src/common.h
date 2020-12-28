@@ -9,8 +9,8 @@
 #include <vector>
     #ifdef _WIN32 // Nobody's gonna run this on linux, but you never know
     #define NOMINMAX // To undef min and max macros in windows header. Those collide with std::min and std::max
-    #include <windows.h>
-    #include <debugapi.h>
+    //#include <windows.h>
+    //#include <debugapi.h>
     #endif
 #endif
 
@@ -41,9 +41,10 @@ struct Debug {
 
     void static break_on_fail(bool condition, const std::string& message) {
 #if _DEBUG && _WIN32
-        if (!condition) {
-            DebugBreak();
-        }
+        // TODO @DEV: Enable when this is moved to the test configuration
+        //if (!condition) {
+        //    DebugBreak();
+        //}
 #endif
     }
 };

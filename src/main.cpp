@@ -20,6 +20,7 @@ int main() {
 #else
 
 int main() {
+
     Platform platform; // Probably should be the first thing
     Renderer renderer;
     World world;

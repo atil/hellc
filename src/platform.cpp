@@ -3,11 +3,13 @@
 #define GLFW_INCLUDE_NONE // Disable including glfw dev environment header
 #include <tuple>
 #include <GLFW/glfw3.h>
+#include <ctime>
 #include "config.h"
 
 Platform::Platform() {
 
     // TODO @CLEANUP: Feels weird to only define a Platform variable doing this sort of thing
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     glfwInit();
     this->window = glfwCreateWindow(window_width, window_height, "c'mon. push through.", nullptr, nullptr);
     glfwMakeContextCurrent(window);

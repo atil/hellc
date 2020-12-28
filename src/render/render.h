@@ -4,6 +4,7 @@
 #include <string>
 #include "../assets.h"
 #include "../vector3.h"
+#include "../util.h"
 
 constexpr size_t shadowmap_size = 2048;
 constexpr float near_plane = 0.01f;
@@ -22,14 +23,6 @@ constexpr shader_handle_t default_shader_handle = 0;
 constexpr buffer_handle_t default_buffer_handle = 0;
 constexpr tex_handle_t default_tex_handle = 0;
 
-// TODO @CLEANUP: Put these in Utils class or something
-inline float random_float(float low, float high) {
-    return low + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (high - low)));
-}
-
-inline float lerp(float a, float b, float t) {
-    return a + (b - a) * t;
-}
 
 class Shader {
     shader_handle_t shader_program_handle{ default_shader_handle };
