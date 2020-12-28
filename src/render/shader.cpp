@@ -105,6 +105,7 @@ void Shader::use() const {
 }
 
 uniform_loc_t Shader::get_location(const std::string& property_name) const {
+    // TODO @PERF: These locations don't change once the program is linked
     const uniform_loc_t loc = glGetUniformLocation(this->shader_program_handle, property_name.c_str());
     if (loc == -1) {
         std::cout << "Error when getting shader property location: " << property_name << std::endl;

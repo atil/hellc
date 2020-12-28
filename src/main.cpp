@@ -1,5 +1,5 @@
-// TODO @NEXT: Wiggly torch-lights
 // TODO @NEXT: Fix light bleed and peter-panning
+// TODO @NEXT: While at it, do a better lighting model. This one looks a little off
 
 #include "render/render.h"
 #include "assets.h"
@@ -45,7 +45,7 @@ int main() {
 
         platform.read_input();
         world.tick(platform, dt);
-        renderer.render(world.get_view_matrix());
+        renderer.render(world.get_view_matrix(), dt);
 
         platform.end_frame();
     }

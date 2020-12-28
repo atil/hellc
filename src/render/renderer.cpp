@@ -108,16 +108,16 @@ void Renderer::register_point_light(const PointLightInfo& point_light_info) {
 
     const std::string index_str = std::to_string(index_to_add);
     const std::string pos_prop_name = "u_point_lights[" + index_str + "].position";
-    this->world_shader->set_vec3(pos_prop_name, this->point_lights[index_to_add]->info.position);
+    this->world_shader->set_vec3(pos_prop_name, this->point_lights[index_to_add]->base_info.position);
 
     const std::string color_prop_name = "u_point_lights[" + index_str + "].color";
-    this->world_shader->set_vec3(color_prop_name, this->point_lights[index_to_add]->info.color);
+    this->world_shader->set_vec3(color_prop_name, this->point_lights[index_to_add]->base_info.color);
 
     const std::string intensity_prop_name = "u_point_lights[" + index_str + "].intensity";
-    this->world_shader->set_float(intensity_prop_name, this->point_lights[index_to_add]->info.intensity);
+    this->world_shader->set_float(intensity_prop_name, this->point_lights[index_to_add]->base_info.intensity);
 
     const std::string att_prop_name = "u_point_lights[" + index_str + "].attenuation";
-    this->world_shader->set_float(att_prop_name, this->point_lights[index_to_add]->info.attenuation);
+    this->world_shader->set_float(att_prop_name, this->point_lights[index_to_add]->base_info.attenuation);
 }
 
 void Renderer::register_directional_light(const DirectionalLightInfo& directional_light_info) {
@@ -128,7 +128,16 @@ void Renderer::register_directional_light(const DirectionalLightInfo& directiona
     this->world_shader->set_mat4("u_directional_light_vp", this->directional_light->view_proj);
 }
 
-void Renderer::render(const Matrix4& player_view_matrix) {
+void Renderer::render(const Matrix4& player_view_matrix, float dt) {
+
+    // TODO @CLEANUP: Probably gonna look different when we go through the other light paramters
+    for (auto& point_light : this->point_lights) {
+        const float intensity = point_light->wiggle_intensity(dt);
+
+        const std::string intensity_prop_name = "u_point_lights[" + std::to_string(point_light->index) + "].intensity";
+        this->world_shader->use();
+        this->world_shader->set_float(intensity_prop_name, intensity);
+    }
     
     // Directional shadow
     glViewport(0, 0, shadowmap_size, shadowmap_size);

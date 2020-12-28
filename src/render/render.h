@@ -22,6 +22,15 @@ constexpr shader_handle_t default_shader_handle = 0;
 constexpr buffer_handle_t default_buffer_handle = 0;
 constexpr tex_handle_t default_tex_handle = 0;
 
+// TODO @CLEANUP: Put these in Utils class or something
+inline float random_float(float low, float high) {
+    return low + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (high - low)));
+}
+
+inline float lerp(float a, float b, float t) {
+    return a + (b - a) * t;
+}
+
 class Shader {
     shader_handle_t shader_program_handle{ default_shader_handle };
     uniform_loc_t get_location(const std::string& property_name) const;
@@ -51,6 +60,7 @@ struct Image {
     ~Image();
 };
 
+// TODO @CLEANUP: Rename to StaticRenderUnit
 class RenderUnit {
     buffer_handle_t vao{ default_buffer_handle };
     buffer_handle_t vbo{ default_buffer_handle };
@@ -80,10 +90,13 @@ struct DirectionalLight {
 };
 
 struct PointLight {
-    PointLightInfo info;
+    PointLightInfo base_info;
+    PointLightInfo current_info;
+    int index;
     std::unique_ptr<Shader> shader;
 
     PointLight(const PointLightInfo& point_light_info, int light_index);
+    float wiggle_intensity(float dt);
 };
 
 struct Skybox {
@@ -118,7 +131,7 @@ public:
     void register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation);
     void register_point_light(const PointLightInfo& point_light_info);
     void register_directional_light(const DirectionalLightInfo& directional_light_info);
-    void render(const Matrix4& player_view_matrix);
+    void render(const Matrix4& player_view_matrix, float dt);
 
 };
 

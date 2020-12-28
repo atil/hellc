@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <iostream>
 
+// TODO @DEV: Check these only in the HELL_TEST config
+
 inline void check_gl_error(const std::string& tag) {
     const int error = glGetError();
     if (error != GL_NO_ERROR) {
