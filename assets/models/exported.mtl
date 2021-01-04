@@ -1,0 +1,15 @@
+newmtl Wall2
+map_Kd Wall1.png
+Kd  1.0 1.0 1.0
+d  1.0
+
+newmtl Soil3
+map_Kd Soil3.png
+Kd  1.0 1.0 1.0
+d  1.0
+
+newmtl Metal1
+map_Kd Metal1.png
+Kd  1.0 1.0 1.0
+d  1.0
+

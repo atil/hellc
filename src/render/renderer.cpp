@@ -65,8 +65,6 @@ Renderer::Renderer() {
     glDepthFunc(GL_LESS);
 
     create_draw_fbo(this->draw_fbo, this->draw_tex_handle, this->draw_rbo);
-
-
     create_point_light_cubemap_and_fbo(this->point_light_cubemap_handle, this->point_light_fbo, max_point_light_count);
 
     this->world_shader = std::make_unique<Shader>("src/render/shader/world.glsl");
@@ -74,10 +72,10 @@ Renderer::Renderer() {
     this->world_shader->set_int("u_texture", 0);
     this->world_shader->set_mat4("u_projection", perspective);
 
-    // TODO @TASK: Currently the render units are actually static render units
+    // TODO @CLEANUP: Currently the render units are actually static render units
     // We change the mesh data itself when we offset/rotate them
     // For dynamic objects, we'll have to use this uniform to transform them
-    this->world_shader->set_mat4("u_model", Matrix4::identity());
+    this->world_shader->set_mat4("u_model", Matrix4::identity);
                       
     this->world_shader->set_int("u_shadowmap_directional", 1);
     this->world_shader->set_int("u_shadowmaps_point", 2);
@@ -86,11 +84,26 @@ Renderer::Renderer() {
     this->skybox = std::make_unique<Skybox>("assets/skybox/gehenna", perspective);
 }
 
+void Renderer::register_scene(const Scene& scene) {
+
+    for (const WorldspawnEntry& entry : scene.worldspawn) {
+        const ObjModelData obj_data(entry.obj_name);
+        register_static_obj(obj_data, entry.position, entry.rotation);
+    }
+
+    for (const PointLightInfo& point_light_info : scene.point_light_info) {
+        register_point_light(point_light_info);
+    }
+
+    register_directional_light(scene.directional_light_info);
+
+}
+
 void Renderer::register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation) {
     for (const ObjSubmodelData& obj_face_data : obj_data.submodel_data) {
         for (const Material& m : obj_data.materials) {
             if (m.name == obj_face_data.material_name) {
-                std::unique_ptr<RenderUnit> ru = std::make_unique<RenderUnit>(m, obj_face_data, obj_data, position, rotation);
+                std::unique_ptr<StaticRenderUnit> ru = std::make_unique<StaticRenderUnit>(m, obj_face_data, obj_data, position, rotation);
                 this->render_units.push_back(std::move(ru));
             }
         }
@@ -141,8 +154,8 @@ void Renderer::render(const Matrix4& player_view_matrix, float dt) {
     
     // Directional shadow
     glViewport(0, 0, shadowmap_size, shadowmap_size);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light->fbo);
     glDisable(GL_CULL_FACE); // Write to depth buffer with all faces. Otherwise the backfaces won't cause shadows
+    glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light->fbo);
     glClear(GL_DEPTH_BUFFER_BIT);
     this->directional_light->shader->use();
     for (auto& ru : this->render_units) {
@@ -152,7 +165,6 @@ void Renderer::render(const Matrix4& player_view_matrix, float dt) {
 
     // Point shadow
     glBindFramebuffer(GL_FRAMEBUFFER, this->point_light_fbo);
-    glDisable(GL_CULL_FACE); // Can we do this before the framebuffer bind? Also for the directional light
     glClear(GL_DEPTH_BUFFER_BIT);
     for (auto& point_light : this->point_lights) {
         point_light->shader->use();
@@ -162,7 +174,6 @@ void Renderer::render(const Matrix4& player_view_matrix, float dt) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_CULL_FACE);
-
 
     // Draw to backbuffer
     glBindFramebuffer(GL_FRAMEBUFFER, this->draw_fbo);
@@ -200,8 +211,6 @@ void Renderer::render(const Matrix4& player_view_matrix, float dt) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, draw_framebuffer_size.x, draw_framebuffer_size.y, 0, 0, window_width, window_height,
         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-    // TODO @TASK: Text rendering
 }
 
 Renderer::~Renderer() {
@@ -213,3 +222,4 @@ Renderer::~Renderer() {
     glDeleteRenderbuffers(1, &this->draw_rbo);
    
 }
+

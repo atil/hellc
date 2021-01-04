@@ -2,7 +2,7 @@
 #include "world.h"
 #include "geom.h"
 
-constexpr float player_height = 1.0f;
+constexpr float player_height = 2.0f;
 constexpr float player_radius = 0.5f;
 
 StaticCollider::StaticCollider(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation) {
@@ -92,7 +92,6 @@ bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_
     const Vector3 mid_pos = player_shape.segment_bottom;
 
     const Vector3 left = Vector3::cross(Vector3::up, player_move_dir_horz);
-    // TODO @TASK: Ghost jump ray
     // TODO @PERF: Only three rays at most is enough:
     // One for the move dir, one for mid_pos, one for ghost jump
     std::vector<Ray> grounded_check_rays {
@@ -107,7 +106,6 @@ bool Physics::is_grounded(const Vector3& player_pos, const Vector3& player_move_
     Ray hit(Vector3::zero, Vector3::zero);
     for (const Ray& ray : grounded_check_rays) {
         if (raycast(ray, ray_length, static_colliders, hit)) {
-
             ground_normal = hit.direction;
             return true;
         }
@@ -143,10 +141,5 @@ bool Physics::raycast(const Ray& ray, float max_dist, const std::vector<StaticCo
     }
 
     return false;
-}
-
-
-void Physics::run_geom_tests() {
-    run_geom_tests_internal(); // TODO @CLEANUP: This looks weird. Maybe move this to world.h?
 }
 

@@ -1,0 +1,14 @@
+@player_start
+3.119 4.672 38.134
+
+@worldspawn
+assets/models/exported.obj
+0 0 0
+0 0 0
+
+@point_light
+-14.532 5.304 37.781
+0.695 0.363861 0.08896001
+10
+0.5
+

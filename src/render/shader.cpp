@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS // TODO @CLEANUP: Is it possible to remove these?
 #include <iostream>
 #include <cstdlib>
 #include <fstream>

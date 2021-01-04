@@ -15,7 +15,9 @@ Platform::Platform() {
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide cursor
 
-    glfwSetWindowPos(window, 1920 / 2, 1080 / 2);
+    const int window_x = (1920 / 2) - (window_width / 2);
+    const int window_y = (1080 / 2) - (window_height / 2);
+    glfwSetWindowPos(window, window_x, window_y); 
 
     double mouse_x, mouse_y;
     glfwGetCursorPos(window, &mouse_x, &mouse_y);

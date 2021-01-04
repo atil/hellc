@@ -1,5 +1,4 @@
 #pragma once
-//#include "common.h"
 #include <string>
 #include <vector>
 #include "vector3.h"
@@ -60,6 +59,7 @@ struct DirectionalLightInfo {
 };
 
 struct Scene {
+    Vector3 player_start;
     std::vector<WorldspawnEntry> worldspawn;
     std::vector<PointLightInfo> point_light_info;
     DirectionalLightInfo directional_light_info;

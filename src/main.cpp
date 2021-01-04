@@ -1,42 +1,24 @@
-// TODO @NEXT: Fix light bleed and peter-panning
-// TODO @NEXT: While at it, do a better lighting model. This one looks a little off
+// TODO @NEXT: Unity: Write scene file: directional lights
 
 #include "render/render.h"
 #include "assets.h"
 #include "platform.h"
 #include "world/world.h"
 
-// TODO @TASK @DEV: Separate unit test project
-// TODO @TASK @DEV: Test release build
-//#define RUN_TESTS 
-
-#ifdef RUN_TESTS
-int main() {
-    Physics::run_geom_tests();
-    Physics::run_collision_tests();
-    getchar();
-    return 0;
-}
-#else
+#include <direct.h>
 
 int main() {
 
-    Platform platform; // Probably should be the first thing
-    Renderer renderer;
-    World world;
+    _chdir(R"(c:\users\atil\code\hellc\)");
 
-    Scene scene = read_scene("assets/test_lighting.txt");
-    for (const WorldspawnEntry& entry : scene.worldspawn) {
-        const ObjModelData obj_data(entry.obj_name);
-        renderer.register_static_obj(obj_data, entry.position, entry.rotation);
-        world.register_static_collider(obj_data, entry.position, entry.rotation);
-    }
+    Platform platform {};
+    Renderer renderer {};
+    World world {};
 
-    for (const PointLightInfo& point_light_info : scene.point_light_info) {
-        renderer.register_point_light(point_light_info);
-    }
+    Scene scene = read_scene("assets/test_export.txt");
 
-    renderer.register_directional_light(scene.directional_light_info);
+    world.register_scene(scene);
+    renderer.register_scene(scene);
 
     float prev_time = Platform::get_time();
     while (!platform.should_window_close()) {
@@ -45,7 +27,7 @@ int main() {
         prev_time = now_time;
 
         platform.read_input();
-        world.tick(platform, dt);
+        world.player_tick(platform, dt);
         renderer.render(world.get_view_matrix(), dt);
 
         platform.end_frame();
@@ -53,4 +35,3 @@ int main() {
 
     return 0;
 }
-#endif

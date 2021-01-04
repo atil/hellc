@@ -16,7 +16,7 @@ DirectionalLight::DirectionalLight(const DirectionalLightInfo& info) {
     this->shader = std::make_unique<Shader>("src/render/shader/shadowmap_depth_directional.glsl");
     this->shader->use();
     this->shader->set_mat4("u_light_vp", this->view_proj);
-    this->shader->set_mat4("u_model", Matrix4::identity());
+    this->shader->set_mat4("u_model", Matrix4::identity);
 
     glGenTextures(1, &this->depth_tex_handle);
     glBindTexture(GL_TEXTURE_2D, this->depth_tex_handle);
@@ -66,14 +66,15 @@ PointLight::PointLight(const PointLightInfo& point_light_info, int light_index)
     this->shader->set_float("u_far_plane", shadow_far_plane);
     this->shader->set_vec3("u_light_pos", this->base_info.position);
     this->shader->set_int("u_light_index", this->index);
-    this->shader->set_mat4("u_model", Matrix4::identity());
+    this->shader->set_mat4("u_model", Matrix4::identity);
 
     check_gl_error("point_light_ctor");
 }
 
 float PointLight::wiggle_intensity(float dt) {
-    const float r = random_float(-10.0f, 10.0f);
-    const float target_intensity = this->base_info.intensity + r;
+    const float range = 500.0f;
+    const float perc = random_float(0, range);
+    const float target_intensity = this->base_info.intensity + (this->base_info.intensity * (perc / 100.0f));
     const float new_current = lerp(this->current_info.intensity, target_intensity, dt * 10);
     this->current_info.intensity = new_current;
 

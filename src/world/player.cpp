@@ -2,7 +2,7 @@
 #include "geom.h"
 #include <tuple>
 
-constexpr float fly_speed = 10.0f;
+constexpr float fly_speed = 30.0f;
 constexpr float sensitivity = 2.0f;
 constexpr float max_speed = 8.0f;
 constexpr float gravity = 16.0f;
@@ -105,12 +105,13 @@ void apply_air_control(Vector3& player_velocity, const Vector3& wish_dir, const 
     }
 }
 
-void World::tick(const Platform& platform, float dt) {
+void World::player_tick(const Platform& platform, float dt) {
     if (platform.get_key_down(KeyCode::ToggleFly)) {
         this->fly_move_enabled = !this->fly_move_enabled;
     }
-    
+
     mouse_look(platform, dt);
+    //Debug::log("pos %f %f %f", player_position.x, player_position.y, player_position.z);
 
     if (this->fly_move_enabled) {
         fly_move(platform, dt);

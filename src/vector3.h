@@ -54,8 +54,8 @@ struct Matrix4 {
     static Matrix4 look_at(const Vector3& eye, const Vector3& center, const Vector3& up);
     static Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
     static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);
-    static Matrix4 identity();
-    
+
+    static const Matrix4 identity;
 };
 
 struct Vector2 {
@@ -63,6 +63,8 @@ struct Vector2 {
     const float y;
 
     Vector2(float x_, float y_) : x(x_), y(y_) { }
+
+    Vector2 operator*(float f) const;
 };
 
 struct Vector2i {

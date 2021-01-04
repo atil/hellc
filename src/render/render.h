@@ -7,7 +7,7 @@
 #include "../util.h"
 
 constexpr size_t shadowmap_size = 2048;
-constexpr float near_plane = 0.01f;
+constexpr float near_plane = 0.001f;
 constexpr float far_plane = 1000.0f;
 constexpr float shadow_near_plane = 0.001f;
 constexpr float shadow_far_plane = 1000.0f;
@@ -22,7 +22,6 @@ typedef unsigned int tex_handle_t;
 constexpr shader_handle_t default_shader_handle = 0;
 constexpr buffer_handle_t default_buffer_handle = 0;
 constexpr tex_handle_t default_tex_handle = 0;
-
 
 class Shader {
     shader_handle_t shader_program_handle{ default_shader_handle };
@@ -53,8 +52,7 @@ struct Image {
     ~Image();
 };
 
-// TODO @CLEANUP: Rename to StaticRenderUnit
-class RenderUnit {
+class StaticRenderUnit {
     buffer_handle_t vao{ default_buffer_handle };
     buffer_handle_t vbo{ default_buffer_handle };
     buffer_handle_t ibo{ default_buffer_handle };
@@ -64,9 +62,9 @@ class RenderUnit {
     static const Matrix4 perspective;
 
 public:
-    RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data,
+    StaticRenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data,
         const Vector3& position, const Vector3& rotation);
-    ~RenderUnit();
+    ~StaticRenderUnit();
 
     void render() const;
 };
@@ -104,7 +102,7 @@ struct Skybox {
 };
 
 class Renderer {
-    std::vector<std::unique_ptr<RenderUnit>> render_units;
+    std::vector<std::unique_ptr<StaticRenderUnit>> render_units;
     std::unique_ptr<Shader> world_shader;
     std::unique_ptr<DirectionalLight> directional_light;
     std::unique_ptr<Skybox> skybox;
@@ -117,13 +115,15 @@ class Renderer {
     tex_handle_t draw_tex_handle { default_tex_handle };
     buffer_handle_t draw_rbo{ default_buffer_handle };
 
+    void register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation);
+    void register_point_light(const PointLightInfo& point_light_info);
+    void register_directional_light(const DirectionalLightInfo& directional_light_info);
+
 public:
     Renderer();
     ~Renderer();
 
-    void register_static_obj(const ObjModelData& obj_data, const Vector3& position, const Vector3& rotation);
-    void register_point_light(const PointLightInfo& point_light_info);
-    void register_directional_light(const DirectionalLightInfo& directional_light_info);
+    void register_scene(const Scene& scene);
     void render(const Matrix4& player_view_matrix, float dt);
 
 };

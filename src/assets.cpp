@@ -129,7 +129,6 @@ ObjModelData::ObjModelData(const std::string& file_path) {
     this->submodel_data.push_back(current_submodel);
 }
 
-
 Vector3 read_vec3(const std::string& line, std::istringstream& line_stream) {
     line_stream.clear();
     line_stream.str(line);
@@ -146,7 +145,6 @@ std::string read_string(const std::string& line, std::istringstream& line_stream
     line_stream >> str;
     return str;
 }
-
 
 float read_float(const std::string& line, std::istringstream& line_stream) {
     line_stream.clear();
@@ -168,8 +166,14 @@ Scene read_scene(const std::string& file_path) {
     std::string line;
     std::istringstream line_stream;
     while (std::getline(stream, line)) {
-        if (line.find("#worldspawn") == 0) {
-
+        if (line.find('#') == 0) {
+            continue;
+        }
+        if (line.find("@player_start") == 0) {
+            std::getline(stream, line);
+            scene.player_start = read_vec3(line, line_stream);
+        }
+        else if (line.find("@worldspawn") == 0) {
             std::getline(stream, line);
             std::string obj_name = read_string(line, line_stream);
 
@@ -181,7 +185,7 @@ Scene read_scene(const std::string& file_path) {
 
             scene.worldspawn.push_back({ obj_name, pos, rot });
         }
-        else if (line.find("#point_light") == 0) {
+        else if (line.find("@point_light") == 0) {
             std::getline(stream, line);
             Vector3 pos = read_vec3(line, line_stream);
 
@@ -196,7 +200,7 @@ Scene read_scene(const std::string& file_path) {
 
             scene.point_light_info.push_back({ pos, color, attenuation, intensity });
         }
-        else if (line.find("#directional_light") == 0) {
+        else if (line.find("@directional_light") == 0) {
             std::getline(stream, line);
             Vector3 pos = read_vec3(line, line_stream);
 

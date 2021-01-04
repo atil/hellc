@@ -1,22 +1,12 @@
 #pragma once
-//#define NDEBUG // TODO @TASK @DEV: Use build configurations
-
 #include <string>
 
 #ifdef _DEBUG
 #include <iostream>
 #include <cstdarg>
+#include <cassert>
 #include <vector>
-    #ifdef _WIN32 // Nobody's gonna run this on linux, but you never know
-    #define NOMINMAX // To undef min and max macros in windows header. Those collide with std::min and std::max
-    //#include <windows.h>
-    //#include <debugapi.h>
-    #endif
 #endif
-
-// TODO @TASK @DEV: This should be enabled only when the HELL_TEST flag is enabled
-// That's a thing we'll enable when we actually debug stuff, not used in the implementation
-// The reason is because it makes the compilation a bit longer
 
 struct Debug {
     // Taken from: https://stackoverflow.com/a/49812356/4894526
@@ -39,12 +29,12 @@ struct Debug {
 #endif
     }
 
-    void static break_on_fail(bool condition, const std::string& message) {
-#if _DEBUG && _WIN32
-        // TODO @DEV: Enable when this is moved to the test configuration
-        //if (!condition) {
-        //    DebugBreak();
-        //}
+    void static hell_assert(bool condition) {
+#ifdef _DEBUG
+        if (!condition) {
+            assert(condition);
+        }
 #endif
     }
+
 };

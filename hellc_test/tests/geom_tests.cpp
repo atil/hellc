@@ -1,7 +1,4 @@
-#include <cassert>
-
-#include "geom.h"
-#include <iostream>
+#include "tests.h"
 
 void test_line_segment_above_triangle() {
     Vector3 closer_point;
@@ -83,7 +80,7 @@ void test_problem_1() {
     assert(!b);
 }
 
-void run_geom_tests_internal() {
+void run_geom_tests() {
     std::cout << "Running geom tests " << std::endl;
 
     test_line_segment_above_triangle();

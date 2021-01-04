@@ -105,6 +105,10 @@ Vector3 operator*(const float& f, const Vector3& v) {
     return v * f;
 }
 
+Vector2 Vector2::operator*(float f) const {
+    return { this->x * f, this->y * f };
+}
+
 Matrix4 Matrix4::operator*(const Matrix4& other) const {
     Matrix4 m{ 0 };
 
@@ -204,7 +208,7 @@ Matrix4 Matrix4::perspective(float fov, float aspect_ratio, float near, float fa
 }
 
 Matrix4 Matrix4::ortho(float left, float right, float bottom, float top, float near, float far) {
-    Matrix4 m = identity();
+    Matrix4 m = identity;
 
     m.data[0 * 4 + 0] = 2 / (right - left);
     m.data[1 * 4 + 1] = 2 / (top - bottom);
@@ -216,14 +220,9 @@ Matrix4 Matrix4::ortho(float left, float right, float bottom, float top, float n
     return m;
 }
 
-Matrix4 Matrix4::identity() {
-    Matrix4 m{ 0 };
-
-    // TODO @CLEANUP: Can we make this a static const?
-    m.data[0 * 4 + 0] = 1.0f;
-    m.data[1 * 4 + 1] = 1.0f;
-    m.data[2 * 4 + 2] = 1.0f;
-    m.data[3 * 4 + 3] = 1.0f;
-
-    return m;
-}
+const Matrix4 Matrix4::identity = Matrix4 {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+};

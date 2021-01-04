@@ -8,29 +8,31 @@
 #include <iostream>
 #include "render.h"
 
-RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, 
-    const Vector3& position, const Vector3& rotation) {
+StaticRenderUnit::StaticRenderUnit(const Material& material, const ObjSubmodelData& obj_submodel_data, const ObjModelData& obj_data, 
+                                   const Vector3& position, const Vector3& rotation) {
     std::vector<float> vertex_data;
     vertex_data.reserve(obj_submodel_data.faces.size() * 24);
 
     for (const ObjFaceData& face_data : obj_submodel_data.faces) {
+        const float uv_scale = 0.1f; // Makes the test environment look better
+
         const Vector3& obj_p0 = obj_data.position_data[face_data.position_indices[0]];
         const Vector3 p0 = Vector3::rotate(obj_p0, rotation) + position;
-        const Vector2& uv0 = obj_data.uv_data[face_data.uv_indices[0]];
+        const Vector2& uv0 = obj_data.uv_data[face_data.uv_indices[0]] * uv_scale;
         const Vector3& obj_n0 = obj_data.normal_data[face_data.normal_indices[0]];
         const Vector3 n0 = Vector3::rotate(obj_n0, rotation);
         vertex_data.insert(vertex_data.end(), { p0.x, p0.y, p0.z, uv0.x, uv0.y, n0.x, n0.y, n0.z });
 
         const Vector3& obj_p1 = obj_data.position_data[face_data.position_indices[1]];
         const Vector3 p1 = Vector3::rotate(obj_p1, rotation) + position;
-        const Vector2& uv1 = obj_data.uv_data[face_data.uv_indices[1]];
+        const Vector2& uv1 = obj_data.uv_data[face_data.uv_indices[1]] * uv_scale;
         const Vector3& obj_n1 = obj_data.normal_data[face_data.normal_indices[1]];
         const Vector3 n1 = Vector3::rotate(obj_n1,rotation);
         vertex_data.insert(vertex_data.end(), { p1.x, p1.y, p1.z, uv1.x, uv1.y, n1.x, n1.y, n1.z });
 
         const Vector3& obj_p2 = obj_data.position_data[face_data.position_indices[2]];
         const Vector3 p2 = Vector3::rotate(obj_p2, rotation) + position;
-        const Vector2& uv2 = obj_data.uv_data[face_data.uv_indices[2]];
+        const Vector2& uv2 = obj_data.uv_data[face_data.uv_indices[2]] * uv_scale;
         const Vector3& obj_n2 = obj_data.normal_data[face_data.normal_indices[2]];
         const Vector3 n2 = Vector3::rotate(obj_n2, rotation);
         vertex_data.insert(vertex_data.end(), { p2.x, p2.y, p2.z, uv2.x, uv2.y, n2.x, n2.y, n2.z });
@@ -59,15 +61,11 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(5 * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    // TODO @BACKLOG Vertex colors
-
     glGenBuffers(1, &(this->ibo));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->index_data_length * sizeof(int), index_data.data(), GL_STATIC_DRAW);
 
-    this->tex_handle = 0;
-    // TODO @BACKLOG: Handling color-only materials
-    // We're temporarily handling it like this, but we should use another shader for this
+    this->tex_handle = default_tex_handle;
     if (!material.diffuse_texture_name.empty()) {
         const std::string image_path = "assets/textures/" + material.diffuse_texture_name;
         const Image image(image_path, true);
@@ -81,7 +79,7 @@ RenderUnit::RenderUnit(const Material& material, const ObjSubmodelData& obj_subm
     }
 }
 
-void RenderUnit::render() const {
+void StaticRenderUnit::render() const {
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo);
     glActiveTexture(GL_TEXTURE0);
@@ -89,7 +87,7 @@ void RenderUnit::render() const {
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(this->index_data_length), GL_UNSIGNED_INT, nullptr);
 }
 
-RenderUnit::~RenderUnit() {
+StaticRenderUnit::~StaticRenderUnit() {
     glDeleteVertexArrays(1, &(this->vao));
     glDeleteBuffers(1, &(this->vbo));
     glDeleteBuffers(1, &(this->ibo));
