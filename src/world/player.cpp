@@ -4,7 +4,7 @@
 
 constexpr float fly_speed = 30.0f;
 constexpr float sensitivity = 2.0f;
-constexpr float max_speed = 8.0f;
+constexpr float max_speed = 12.0f;
 constexpr float gravity = 16.0f;
 constexpr float ground_accel = 8.0f;
 constexpr float ground_friction = 8.0f;

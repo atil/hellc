@@ -46,6 +46,12 @@ struct WorldspawnEntry {
     Vector3 rotation;
 };
 
+struct PropEntry {
+    std::string obj_name;
+    Vector3 position;
+    Vector3 rotation;
+};
+
 struct PointLightInfo {
     Vector3 position;
     Vector3 color;
@@ -61,6 +67,7 @@ struct DirectionalLightInfo {
 struct Scene {
     Vector3 player_start;
     std::vector<WorldspawnEntry> worldspawn;
+    std::vector<PropEntry> props;
     std::vector<PointLightInfo> point_light_info;
     DirectionalLightInfo directional_light_info;
 };

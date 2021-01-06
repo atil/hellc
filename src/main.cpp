@@ -1,4 +1,5 @@
-// TODO @NEXT: Unity: Write scene file: directional lights
+// TODO @NEXT: Player start pos
+// TODO @NEXT: Shoot footage
 
 #include "render/render.h"
 #include "assets.h"
@@ -9,6 +10,7 @@
 
 int main() {
 
+    // TODO @CLEANUP: To make it run from Unity
     _chdir(R"(c:\users\atil\code\hellc\)");
 
     Platform platform {};

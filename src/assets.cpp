@@ -185,6 +185,18 @@ Scene read_scene(const std::string& file_path) {
 
             scene.worldspawn.push_back({ obj_name, pos, rot });
         }
+        else if (line.find("@prop") == 0) {
+            std::getline(stream, line);
+            std::string obj_name = read_string(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 pos = read_vec3(line, line_stream);
+
+            std::getline(stream, line);
+            Vector3 rot = read_vec3(line, line_stream);
+
+            scene.props.push_back({ obj_name, pos, rot });
+        }
         else if (line.find("@point_light") == 0) {
             std::getline(stream, line);
             Vector3 pos = read_vec3(line, line_stream);

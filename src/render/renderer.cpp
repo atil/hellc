@@ -73,8 +73,8 @@ Renderer::Renderer() {
     this->world_shader->set_mat4("u_projection", perspective);
 
     // TODO @CLEANUP: Currently the render units are actually static render units
-    // We change the mesh data itself when we offset/rotate them
-    // For dynamic objects, we'll have to use this uniform to transform them
+    // We change the mesh data itself to apply the initial transformation
+    // For dynamic objects, we'll have to use this uniform to transform them every frame
     this->world_shader->set_mat4("u_model", Matrix4::identity);
                       
     this->world_shader->set_int("u_shadowmap_directional", 1);
@@ -87,6 +87,11 @@ Renderer::Renderer() {
 void Renderer::register_scene(const Scene& scene) {
 
     for (const WorldspawnEntry& entry : scene.worldspawn) {
+        const ObjModelData obj_data(entry.obj_name);
+        register_static_obj(obj_data, entry.position, entry.rotation);
+    }
+
+    for (const PropEntry& entry : scene.props) {
         const ObjModelData obj_data(entry.obj_name);
         register_static_obj(obj_data, entry.position, entry.rotation);
     }

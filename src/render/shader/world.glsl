@@ -27,6 +27,7 @@ void main() {
     vec4 clip_pos = u_projection * u_view * u_model * vec4(in_position, 1.0);
 
     // jitter effect
+    // NOTE: Disabled because it causes little gaps between triangles
 //    clip_pos.xyz = clip_pos.xyz / clip_pos.w; // clip space -> NDC
 //    clip_pos.xy = floor(JITTER_RESOLUTION * clip_pos.xy) / JITTER_RESOLUTION;
 //    clip_pos.xyz *= clip_pos.w; // NDC -> clip space
@@ -120,7 +121,7 @@ vec2 get_frag_brightness_from_light(PointLight light, int light_index) {
 
     float is_in_light = 0.0;
 
-    vec3 light_to_frag = v2f_frag_world_pos - light.position;
+    vec3 light_to_frag = -frag_to_point_light;
     float light_to_frag_dist = length(light_to_frag) - 0.005; // bias
 
     float depth_in_cubemap = texture(u_shadowmaps_point, vec4(light_to_frag, light_index)).r;
@@ -139,6 +140,7 @@ void main() {
 
     for (int i = 0; i < u_point_light_count; i++) {
         vec2 result = get_frag_brightness_from_light(u_point_lights[i], i);
+
         if (result.x > 0) {
             total_brightness += result.y;
             total_light_color += u_point_lights[i].color * result.y;
@@ -148,10 +150,12 @@ void main() {
     vec4 tex_color = texture(u_texture, v2f_uv);
     vec4 shadowed_tex_color = vec4(tex_color.rgb * 0.05, 1.0);
 
-    if (total_brightness > 0) {
+//    if (total_brightness > 0) {
+//        frag_color = tex_color * vec4(total_light_color, 1.0);
+//    } else {
+//        frag_color = shadowed_tex_color;
+//    }
+//
         frag_color = tex_color * vec4(total_light_color, 1.0);
-    } else {
-        frag_color = shadowed_tex_color;
-    }
 };
 #endif
