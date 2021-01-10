@@ -173,6 +173,10 @@ Scene read_scene(const std::string& file_path) {
             std::getline(stream, line);
             scene.player_start = read_vec3(line, line_stream);
         }
+        else if (line.find("@player_lookat") == 0) {
+            std::getline(stream, line);
+            scene.player_lookat = read_vec3(line, line_stream);
+        }
         else if (line.find("@worldspawn") == 0) {
             std::getline(stream, line);
             std::string obj_name = read_string(line, line_stream);

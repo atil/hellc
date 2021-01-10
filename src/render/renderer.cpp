@@ -37,7 +37,7 @@ void create_point_light_cubemap_and_fbo(tex_handle_t& cubemap_handle, buffer_han
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, shadowmap_size, shadowmap_size,
+    glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, point_shadowmap_size, point_shadowmap_size,
         6 * point_light_count, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, 0);
 
@@ -158,7 +158,7 @@ void Renderer::render(const Matrix4& player_view_matrix, float dt) {
     }
     
     // Directional shadow
-    glViewport(0, 0, shadowmap_size, shadowmap_size);
+    glViewport(0, 0, point_shadowmap_size, point_shadowmap_size);
     glDisable(GL_CULL_FACE); // Write to depth buffer with all faces. Otherwise the backfaces won't cause shadows
     glBindFramebuffer(GL_FRAMEBUFFER, this->directional_light->fbo);
     glClear(GL_DEPTH_BUFFER_BIT);

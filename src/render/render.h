@@ -6,7 +6,8 @@
 #include "../vector3.h"
 #include "../util.h"
 
-constexpr size_t shadowmap_size = 1024;
+constexpr size_t point_shadowmap_size = 1024;
+constexpr size_t directional_shadowmap_size = 2048;
 constexpr float near_plane = 0.001f;
 constexpr float far_plane = 1000.0f;
 constexpr float shadow_near_plane = 0.001f;

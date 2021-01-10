@@ -26,7 +26,7 @@ DirectionalLight::DirectionalLight(const DirectionalLightInfo& info) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     float border_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowmap_size, shadowmap_size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, directional_shadowmap_size, directional_shadowmap_size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
     this->fbo = 0;
     glGenFramebuffers(1, &this->fbo);

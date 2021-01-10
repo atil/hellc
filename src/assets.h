@@ -66,6 +66,7 @@ struct DirectionalLightInfo {
 
 struct Scene {
     Vector3 player_start;
+    Vector3 player_lookat;
     std::vector<WorldspawnEntry> worldspawn;
     std::vector<PropEntry> props;
     std::vector<PointLightInfo> point_light_info;

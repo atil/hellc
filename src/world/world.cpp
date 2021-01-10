@@ -17,6 +17,7 @@ StaticCollider::StaticCollider(const ObjModelData& obj_data, const Vector3& posi
 
 void World::register_scene(const Scene& scene) {
     this->player_position = scene.player_start;
+    this->player_forward = Vector3::normalize(scene.player_lookat - scene.player_start);
 
     for (const WorldspawnEntry& entry : scene.worldspawn) {
         const ObjModelData obj_data(entry.obj_name);
